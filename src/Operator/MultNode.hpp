@@ -1,0 +1,6 @@
+
+
+#ifndef METAAUTODIFF_MULTNODE_HPP
+#define METAAUTODIFF_MULTNODE_HPP
+
+#endif
