@@ -96,7 +96,7 @@ struct ChainRuleExpansion;
 //对相同节点计算时
 template<typename NodeTypePara>
 typename std::enable_if<isNodeType<NodeTypePara>::value, IdendityType>::type
-calcPartialDerivative(const GraphNodeBase<NodeTypePara>* dependentVariable, const GraphNodeBase<NodeTypePara>* independentVariable) {
+_calcPartialDerivative(GraphNodeBase<NodeTypePara>* dependentVariable, GraphNodeBase<NodeTypePara>* independentVariable) {
     //std::cout << "in 0" << std::endl;
     return IdendityType::creat();
 }
@@ -105,7 +105,7 @@ template<typename DependentVariablePara, typename IndependentVariablePara>
 typename std::enable_if<has_dependence<DependentVariablePara, IndependentVariablePara>::value,
                         typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
                        >::type
-calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
+_calcPartialDerivative(GraphNodeBase<DependentVariablePara>* dependentVariable, GraphNodeBase<IndependentVariablePara>* independentVariable) {
     //std::cout << "in 1" << std::endl;
     auto result =  ChainRuleExpansion<std::tuple_size<typename DependentVariablePara::InputNodeTypes>::value - 1
                              >::expansion(dependentVariable->getDerivedPtr(), independentVariable->getDerivedPtr());
@@ -116,7 +116,7 @@ calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVaria
 
 template<typename DependentVariablePara, typename IndependentVariablePara>
 typename std::enable_if<!has_dependence<DependentVariablePara, IndependentVariablePara>::value, ZeroType>::type
-calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
+_calcPartialDerivative(GraphNodeBase<DependentVariablePara>* dependentVariable, GraphNodeBase<IndependentVariablePara>* independentVariable) {
     //std::cout << "in 3" << std::endl;
     return ZeroType::creat();
 }
@@ -125,10 +125,10 @@ template<unsigned int n>
 struct ChainRuleExpansion {
     template<typename DependentVariablePara, typename IndependentVariablePara>
     static typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
-    expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
+    expansion(GraphNodeBase<DependentVariablePara>* dependentVariable, GraphNodeBase<IndependentVariablePara>* independentVariable) {
         //std::cout << "in 4" << std::endl;
         auto temp1 = (dependentVariable->template partialDerivative<n>());
-        auto temp2 = calcPartialDerivative(std::get<n>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
+        auto temp2 = _calcPartialDerivative(std::get<n>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
         //std::cout << "in 4-1" << std::endl;
         //std::cout << "temp1: " << std::endl;
         //std::cout << temp1 << std::endl;
@@ -154,16 +154,27 @@ struct ChainRuleExpansion<0> {
                                                                                      >::type, IndependentVariablePara>::value, 
                                      typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type,
                                      ZeroType>::type
-    expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
+    expansion(GraphNodeBase<DependentVariablePara>* dependentVariable, GraphNodeBase<IndependentVariablePara>* independentVariable) {
         //std::cout << "in 5" << std::endl;
         auto temp1 = (dependentVariable->template partialDerivative<0>());
-        auto temp2 = calcPartialDerivative(std::get<0>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
+        auto temp2 = _calcPartialDerivative(std::get<0>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
         auto result =  temp1*temp2;
         //std::cout << "in 5-1" << std::endl;
         //std::cout << result << std::endl;
         return result;
     }
 };
+
+template<typename DependentVariablePara, typename IndependentVariablePara>
+GradientEdge<DependentVariablePara, IndependentVariablePara, 
+             typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type>
+calcPartialDerivative(GraphNodeBase<DependentVariablePara>* dependentVariable, GraphNodeBase<IndependentVariablePara>* independentVariable) {
+    using DerivativeValueType = typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type;
+    DerivativeValueType derivative = _calcPartialDerivative(dependentVariable, independentVariable);
+    auto result = GradientEdge<DependentVariablePara, IndependentVariablePara, DerivativeValueType>
+                                                       (dependentVariable->getDerivedPtr(), independentVariable->getDerivedPtr(), derivative);
+    return result;
+}
 
 }
 
