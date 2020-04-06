@@ -86,7 +86,7 @@ struct remove_pointer<T*> {
 
 template<typename T>
 struct decay {
-    using type = typename remove_const<T>::type;
+    using type = typename remove_cvref<T>::type;
 };
 
 // 第一个实参为或运算左侧值，为一个bool类型值，第二个形参为或运算右侧类型，它包含一个value成员，该成员为bool类型
