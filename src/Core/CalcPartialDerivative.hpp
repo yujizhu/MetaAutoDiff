@@ -96,39 +96,39 @@ struct ChainRuleExpansion;
 //对相同节点计算时
 template<typename NodeTypePara>
 typename std::enable_if<isNodeType<NodeTypePara>::value, IdendityType>::type
-calcPartialDerivative(const GraphNodeBase<NodeTypePara>* fenzi, const GraphNodeBase<NodeTypePara>* fenmu) {
+calcPartialDerivative(const GraphNodeBase<NodeTypePara>* dependentVariable, const GraphNodeBase<NodeTypePara>* independentVariable) {
 	//std::cout << "in 0" << std::endl;
     return IdendityType::creat();
 }
 
-template<typename FenziPara, typename FenmuPara>
-typename std::enable_if<has_dependence<FenziPara, FenmuPara>::value,
-                        typename ad_math::partial_derivative_trait<typename FenziPara::ValueType, typename FenmuPara::ValueType>::type
+template<typename DependentVariablePara, typename IndependentVariablePara>
+typename std::enable_if<has_dependence<DependentVariablePara, IndependentVariablePara>::value,
+                        typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
 					   >::type
-calcPartialDerivative(const GraphNodeBase<FenziPara>* fenzi, const GraphNodeBase<FenmuPara>* fenmu) {
+calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
 	//std::cout << "in 1" << std::endl;
-    auto result =  ChainRuleExpansion<std::tuple_size<typename FenziPara::InputNodeTypes>::value - 1
-	                         >::expansion(fenzi->getDerivedPtr(), fenmu->getDerivedPtr());
+    auto result =  ChainRuleExpansion<std::tuple_size<typename DependentVariablePara::InputNodeTypes>::value - 1
+	                         >::expansion(dependentVariable->getDerivedPtr(), independentVariable->getDerivedPtr());
 	//std::cout << "in 1-1" << std::endl;
 	//std::cout << result <<std::endl;
 	return result;
 }
 
-template<typename FenziPara, typename FenmuPara>
-typename std::enable_if<!has_dependence<FenziPara, FenmuPara>::value, ZeroType>::type
-calcPartialDerivative(const GraphNodeBase<FenziPara>* fenzi, const GraphNodeBase<FenmuPara>* fenmu) {
+template<typename DependentVariablePara, typename IndependentVariablePara>
+typename std::enable_if<!has_dependence<DependentVariablePara, IndependentVariablePara>::value, ZeroType>::type
+calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
 	//std::cout << "in 3" << std::endl;
     return ZeroType::creat();
 }
 
 template<unsigned int n>
 struct ChainRuleExpansion {
-    template<typename FenziPara, typename FenmuPara>
-	static typename ad_math::partial_derivative_trait<typename FenziPara::ValueType, typename FenmuPara::ValueType>::type
-    expansion(const GraphNodeBase<FenziPara>* fenzi, const GraphNodeBase<FenmuPara>* fenmu) {
+    template<typename DependentVariablePara, typename IndependentVariablePara>
+	static typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
+    expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
 		//std::cout << "in 4" << std::endl;
-		auto temp1 = (fenzi->template partialDerivative<n>());
-		auto temp2 = calcPartialDerivative(std::get<n>(fenzi->getDerivedPtr()->inputs), fenmu);
+		auto temp1 = (dependentVariable->template partialDerivative<n>());
+		auto temp2 = calcPartialDerivative(std::get<n>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
 		//std::cout << "in 4-1" << std::endl;
 		//std::cout << "temp1: " << std::endl;
         //std::cout << temp1 << std::endl;
@@ -137,7 +137,7 @@ struct ChainRuleExpansion {
 		auto temp3 = temp1*temp2;
 		//std::cout << "temp3: " << std::endl;
         //std::cout << temp3 << std::endl;
-		auto temp4 = ChainRuleExpansion<n-1>::expansion(fenzi, fenmu);
+		auto temp4 = ChainRuleExpansion<n-1>::expansion(dependentVariable, independentVariable);
         //std::cout << "temp4: " << std::endl;
         //std::cout << temp4 << std::endl;
         auto result = temp3 + temp4; // 这里不使用temp1和temp2，直接使用原式子相乘会出错，为什么？   
@@ -149,15 +149,15 @@ struct ChainRuleExpansion {
 
 template<>
 struct ChainRuleExpansion<0> {
-	template<typename FenziPara, typename FenmuPara>
-	static typename std::conditional<has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename FenziPara::InputNodeTypes>::type
-	                                                                                 >::type, FenmuPara>::value, 
-									 typename ad_math::partial_derivative_trait<typename FenziPara::ValueType, typename FenmuPara::ValueType>::type,
+	template<typename DependentVariablePara, typename IndependentVariablePara>
+	static typename std::conditional<has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename DependentVariablePara::InputNodeTypes>::type
+	                                                                                 >::type, IndependentVariablePara>::value, 
+									 typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type,
 									 ZeroType>::type
-	expansion(const GraphNodeBase<FenziPara>* fenzi, const GraphNodeBase<FenmuPara>* fenmu) {
+	expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
 		//std::cout << "in 5" << std::endl;
-		auto temp1 = (fenzi->template partialDerivative<0>());
-		auto temp2 = calcPartialDerivative(std::get<0>(fenzi->getDerivedPtr()->inputs), fenmu);
+		auto temp1 = (dependentVariable->template partialDerivative<0>());
+		auto temp2 = calcPartialDerivative(std::get<0>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
 		auto result =  temp1*temp2;
 		//std::cout << "in 5-1" << std::endl;
 		//std::cout << result << std::endl;
