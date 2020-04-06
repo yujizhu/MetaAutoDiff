@@ -40,7 +40,7 @@ namespace ad_math {
 	    }
         /*
 	    template<unsigned int variableIndex>
-	    static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 2>::value, 
+	    static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 1>::value, 
 		                               OutputValueType>::type 
 		_derivative(T1 input1,T2 input2, T output) {
 		    return 1; 
@@ -68,7 +68,7 @@ namespace ad_math {
 		/* // 由于Matrix加法要求两个输入矩阵维数相同，且它对第一个输入和对第二个输入的偏导数相同，因此只实现一个
 		// 下面的偏导数分支也可以用if constexpr来实现
 	    template<unsigned int variableIndex>
-	    static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 2>::value,
+	    static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 1>::value,
 		                               OutputValueType>::type 
 		_derivative(T1 input1,T2 input2, T output) {
 			auto rowLength = output.rows();
