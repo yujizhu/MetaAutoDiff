@@ -20,12 +20,12 @@ namespace MetaAD {
 namespace internal {
 template<typename T, T leftParameter, T rightParameter>
 struct is_same_value {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<typename T, T parameter>
 struct is_same_value<T, parameter, parameter> {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 
 
@@ -41,47 +41,47 @@ struct remove_const<const T> {
 
 template<typename T>
 struct remove_volatile {
-	using type = T;
+    using type = T;
 };
 
 template<typename T>
 struct remove_volatile<volatile T> {
-	using type =T;
+    using type =T;
 };
 
 template<typename T>
 struct remove_cv {
-	using type = typename remove_volatile<typename remove_const<T>::type>::type;
+    using type = typename remove_volatile<typename remove_const<T>::type>::type;
 };
 
 template<typename T>
 struct remove_ref {
-	using type = T;
+    using type = T;
 };
 
 template<typename T>
 struct remove_ref<T&> {
-	using type = T;
+    using type = T;
 };
 
 template<typename T>
 struct remove_ref<T&&> {
-	using type = T;
+    using type = T;
 };
 
 template<typename T>
 struct remove_cvref {
-	using type = typename remove_cv<typename remove_ref<T>::type>::type;
+    using type = typename remove_cv<typename remove_ref<T>::type>::type;
 };
 
 template<typename T>
 struct remove_pointer {
-	using type = T;
+    using type = T;
 };
 
 template<typename T>
 struct remove_pointer<T*> {
-	using type = T;
+    using type = T;
 };
 
 template<typename T>
@@ -99,7 +99,7 @@ struct logic_or {
 
 template<typename RightTypePara>
 struct logic_or<false, RightTypePara> {
-	static constexpr bool value = RightTypePara::value;
+    static constexpr bool value = RightTypePara::value;
 };
 
 
@@ -135,9 +135,9 @@ struct is_base_of_<Base, Base> {
 
 template<typename Base, typename Derived>
 struct is_base_of {
-	using DecayBase = typename decay<Base>::type;
-	using DecayDerived = typename decay<Derived>::type;
-	static constexpr bool value = is_base_of_<DecayBase, DecayDerived>::value;
+    using DecayBase = typename decay<Base>::type;
+    using DecayDerived = typename decay<Derived>::type;
+    static constexpr bool value = is_base_of_<DecayBase, DecayDerived>::value;
 };
 
 template<typename NodeType>
@@ -161,13 +161,8 @@ struct EdgeTailNodeTrait {
 
 };
 
-
-
-
-
 }
 
 }
-
 
 #endif

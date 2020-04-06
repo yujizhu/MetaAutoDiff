@@ -37,7 +37,7 @@ struct partial_derivative_trait<int, double> {
 
 template<>
 struct partial_derivative_trait<ad_MatrixXd, ad_MatrixXd> {
-	using type = ad_MatrixXd;
+    using type = ad_MatrixXd;
 };
 
 }

@@ -39,7 +39,7 @@ struct has_dependence {
 template<typename HeadNodeTypePara, typename TaliNodeTypePara>
 struct has_dependence<HeadNodeTypePara, TaliNodeTypePara, true> {
     static constexpr bool value = has_dependence_imp<HeadNodeTypePara, TaliNodeTypePara,
-	                              std::tuple_size<typename HeadNodeTypePara::InputNodeTypes>::value - 1>::value;
+                                  std::tuple_size<typename HeadNodeTypePara::InputNodeTypes>::value - 1>::value;
 };
 
 // 这个偏特化不知道要不要加,这个感觉不用加，因为在计算偏导数过程中，只会计算两个不同类型节点间的偏导数，因此不会产生这个调用
@@ -50,42 +50,42 @@ struct has_dependence<NodeTypePara, NodeTypePara, true> { // 这里的true如果
 
 template<typename TailNodeTypePara>
 struct has_dependence<NullTypeNode, TailNodeTypePara, true> {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<typename HeadNodeTypePara>
 struct has_dependence<HeadNodeTypePara, NullTypeNode, true> {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<>
 struct has_dependence<NullTypeNode, NullTypeNode,true> {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<typename HeadNodeTypePara, typename TailNodeTypePara, unsigned int n>
 struct has_dependence_imp {
     //static constexpr bool value = std::is_same<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>, TailNodeTypePara>::value
-	//                           || std::has_dependence<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>, TailNodeType>::value
-	//						   || has_dependence_imp<HeadNodeType, TailNodeTypePara, n-1>::value;
-	// 使用了定义于internal中的logic_or，实现了静态逻辑短路，其具体调用方法与||运算符略有不同，使用时请注意.
-	/* //下面的实现可行，但是代码有重复
+    //                           || std::has_dependence<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>, TailNodeType>::value
+    //                           || has_dependence_imp<HeadNodeType, TailNodeTypePara, n-1>::value;
+    // 使用了定义于internal中的logic_or，实现了静态逻辑短路，其具体调用方法与||运算符略有不同，使用时请注意.
+    /* //下面的实现可行，但是代码有重复
     static constexpr bool value = internal::logic_or<internal::logic_or<std::is_same<typename internal::remove_pointer<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>>::type, TailNodeTypePara>::value, // 由于has_dependence定义了两个节点类型相同的偏特化，因此这一行和下一行的逻辑好像重复了
-	                                                                    has_dependence<typename internal::remove_pointer<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>
-																	   >::value, 
-													 has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, n-1>
-													>::value;
-	*/
+                                                                        has_dependence<typename internal::remove_pointer<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>
+                                                                           >::value, 
+                                                     has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, n-1>
+                                                    >::value;
+    */
     static constexpr bool value = internal::logic_or<has_dependence<typename internal::remove_pointer<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>::value,						   
-													 has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, n-1>
-													>::value;
+                                                     has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, n-1>
+                                                    >::value;
 };
 
 template<typename HeadNodeTypePara, typename TailNodeTypePara>
 struct has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, 0> {
     static constexpr bool value = internal::logic_or<std::is_same<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>, TailNodeTypePara>::value,
-	                                                 has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>
-													>::value;
+                                                     has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>
+                                                    >::value;
 
 };
 
@@ -97,72 +97,72 @@ struct ChainRuleExpansion;
 template<typename NodeTypePara>
 typename std::enable_if<isNodeType<NodeTypePara>::value, IdendityType>::type
 calcPartialDerivative(const GraphNodeBase<NodeTypePara>* dependentVariable, const GraphNodeBase<NodeTypePara>* independentVariable) {
-	//std::cout << "in 0" << std::endl;
+    //std::cout << "in 0" << std::endl;
     return IdendityType::creat();
 }
 
 template<typename DependentVariablePara, typename IndependentVariablePara>
 typename std::enable_if<has_dependence<DependentVariablePara, IndependentVariablePara>::value,
                         typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
-					   >::type
+                       >::type
 calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
-	//std::cout << "in 1" << std::endl;
+    //std::cout << "in 1" << std::endl;
     auto result =  ChainRuleExpansion<std::tuple_size<typename DependentVariablePara::InputNodeTypes>::value - 1
-	                         >::expansion(dependentVariable->getDerivedPtr(), independentVariable->getDerivedPtr());
-	//std::cout << "in 1-1" << std::endl;
-	//std::cout << result <<std::endl;
-	return result;
+                             >::expansion(dependentVariable->getDerivedPtr(), independentVariable->getDerivedPtr());
+    //std::cout << "in 1-1" << std::endl;
+    //std::cout << result <<std::endl;
+    return result;
 }
 
 template<typename DependentVariablePara, typename IndependentVariablePara>
 typename std::enable_if<!has_dependence<DependentVariablePara, IndependentVariablePara>::value, ZeroType>::type
 calcPartialDerivative(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
-	//std::cout << "in 3" << std::endl;
+    //std::cout << "in 3" << std::endl;
     return ZeroType::creat();
 }
 
 template<unsigned int n>
 struct ChainRuleExpansion {
     template<typename DependentVariablePara, typename IndependentVariablePara>
-	static typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
+    static typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type
     expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
-		//std::cout << "in 4" << std::endl;
-		auto temp1 = (dependentVariable->template partialDerivative<n>());
-		auto temp2 = calcPartialDerivative(std::get<n>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
-		//std::cout << "in 4-1" << std::endl;
-		//std::cout << "temp1: " << std::endl;
+        //std::cout << "in 4" << std::endl;
+        auto temp1 = (dependentVariable->template partialDerivative<n>());
+        auto temp2 = calcPartialDerivative(std::get<n>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
+        //std::cout << "in 4-1" << std::endl;
+        //std::cout << "temp1: " << std::endl;
         //std::cout << temp1 << std::endl;
-		//std::cout << "temp2: " << std::endl;
+        //std::cout << "temp2: " << std::endl;
         //std::cout << temp2 << std::endl;
-		auto temp3 = temp1*temp2;
-		//std::cout << "temp3: " << std::endl;
+        auto temp3 = temp1*temp2;
+        //std::cout << "temp3: " << std::endl;
         //std::cout << temp3 << std::endl;
-		auto temp4 = ChainRuleExpansion<n-1>::expansion(dependentVariable, independentVariable);
+        auto temp4 = ChainRuleExpansion<n-1>::expansion(dependentVariable, independentVariable);
         //std::cout << "temp4: " << std::endl;
         //std::cout << temp4 << std::endl;
         auto result = temp3 + temp4; // 这里不使用temp1和temp2，直接使用原式子相乘会出错，为什么？   
-		//std::cout << "in 4-2" << std::endl;
-		//std::cout << result << std::endl;
-		return result;
-	}
+        //std::cout << "in 4-2" << std::endl;
+        //std::cout << result << std::endl;
+        return result;
+    }
 };
 
 template<>
 struct ChainRuleExpansion<0> {
-	template<typename DependentVariablePara, typename IndependentVariablePara>
-	static typename std::conditional<has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename DependentVariablePara::InputNodeTypes>::type
-	                                                                                 >::type, IndependentVariablePara>::value, 
-									 typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type,
-									 ZeroType>::type
-	expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
-		//std::cout << "in 5" << std::endl;
-		auto temp1 = (dependentVariable->template partialDerivative<0>());
-		auto temp2 = calcPartialDerivative(std::get<0>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
-		auto result =  temp1*temp2;
-		//std::cout << "in 5-1" << std::endl;
-		//std::cout << result << std::endl;
-		return result;
-	}	
+    template<typename DependentVariablePara, typename IndependentVariablePara>
+    static typename std::conditional<has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename DependentVariablePara::InputNodeTypes>::type
+                                                                                     >::type, IndependentVariablePara>::value, 
+                                     typename ad_math::partial_derivative_trait<typename DependentVariablePara::ValueType, typename IndependentVariablePara::ValueType>::type,
+                                     ZeroType>::type
+    expansion(const GraphNodeBase<DependentVariablePara>* dependentVariable, const GraphNodeBase<IndependentVariablePara>* independentVariable) {
+        //std::cout << "in 5" << std::endl;
+        auto temp1 = (dependentVariable->template partialDerivative<0>());
+        auto temp2 = calcPartialDerivative(std::get<0>(dependentVariable->getDerivedPtr()->inputs), independentVariable);
+        auto result =  temp1*temp2;
+        //std::cout << "in 5-1" << std::endl;
+        //std::cout << result << std::endl;
+        return result;
+    }
 };
 
 }

@@ -28,7 +28,7 @@ class IdendityType {
 class ZeroType {
   public:
     ZeroType() = default;
-	static ZeroType creat() { return ZeroType{}; }
+    static ZeroType creat() { return ZeroType{}; }
 };
 
 template<typename T>
@@ -38,11 +38,11 @@ T operator+(const ZeroType& leftValue, const T& rightValue) {
 
 template<typename T>
 T operator+(const T& leftValue, const ZeroType& rightValue) {
-	return leftValue;
+    return leftValue;
 }
 
 ZeroType operator+(const ZeroType& leftValue, const ZeroType& rightValue) {
-	return ZeroType::creat();
+    return ZeroType::creat();
 }
 
 template<typename T>
@@ -52,11 +52,11 @@ ZeroType operator*(const ZeroType& leftValue, const T& rightValue) {
 
 template<typename T>
 ZeroType operator*(const T& leftValue, const ZeroType& rightValue) {
-	return ZeroType::creat();
+    return ZeroType::creat();
 }
 
 ZeroType operator*(const ZeroType& leftValue, const ZeroType& rightValue) {
-	return ZeroType::creat();
+    return ZeroType::creat();
 }
 
 template<typename T>
@@ -66,22 +66,22 @@ T operator*(const IdendityType& leftValue, const T& rightValue) {
 
 template<typename T>
 T operator*(const T& leftValue, const IdendityType& rightValue) {
-	return leftValue;
+    return leftValue;
 }
 
 IdendityType operator*(const IdendityType& leftValue, const IdendityType& rightValue) {
-	return IdendityType::creat();
+    return IdendityType::creat();
 }
 
 
 std::ostream & operator<<(std::ostream & a, ZeroType b) {
     std::cout << "Zero" << std::endl;
-	return a;
+    return a;
 }
 
 std::ostream & operator<<(std::ostream & a, IdendityType b) {
     std::cout << "Idendity" << std::endl;
-	return a;
+    return a;
 }
 
 // IdendityType does't support operator+.

@@ -24,20 +24,20 @@ template<typename DerivedPara>
 class GraphEdgeBase {
   public:
     using Derived = DerivedPara;
-	// 头结点类型为箭头所指的节点，即偏导数的分子部分,分数线的上侧
+    // 头结点类型为箭头所指的节点，即偏导数的分子部分,分数线的上侧
     using HeadNodeType = typename traits<Derived>::HeadNodeType;
-	// 尾结点的类型，为箭头尾部的节点类型，即偏导数的分母部分
+    // 尾结点的类型，为箭头尾部的节点类型，即偏导数的分母部分
     using TailNodeType = typename traits<Derived>::TailNodeType;
-	using ValueType = typename traits<Derived>::ValueType;
+    using ValueType = typename traits<Derived>::ValueType;
     ValueType getValue() {
         return derived()->getValue();
     };
-	ValueType getValue() const {
+    ValueType getValue() const {
         return derived()->getValue();
     };
   private:
-	Derived* derived() { return static_cast<Derived*>(this); }
-	const Derived* derived() const { return static_cast<const Derived*>(this); }
+    Derived* derived() { return static_cast<Derived*>(this); }
+    const Derived* derived() const { return static_cast<const Derived*>(this); }
 };
 
 
@@ -50,12 +50,9 @@ struct isEdgeType {
 // 基边类型也应该算作边类型
 template<typename ConcreteEdgeTypePara>
 struct isEdgeType<GraphEdgeBase<ConcreteEdgeTypePara>> {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 
-
-
 }
-
 
 #endif

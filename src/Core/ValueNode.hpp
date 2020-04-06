@@ -27,34 +27,27 @@ class ValueNode
   public:
     using Base = GraphNodeBase<ValueNode>;
     using InputNodeTypes = std::tuple<InputNodeTypePara*>;
-	using ValueType = ValueTypePara;
-	using ConcreteNodeType = ValueNode;
+    using ValueType = ValueTypePara;
+    using ConcreteNodeType = ValueNode;
     ValueNode(const ValueType& valuePara) : Base(), output(valuePara) {} 
     ValueNode() = default;
-	operator ValueType() { return output; }
-	ValueType getValue() { return output; }
+    operator ValueType() { return output; }
+    ValueType getValue() { return output; }
     ValueType getValue() const { return output; }
-	static constexpr unsigned int index() {
+    static constexpr unsigned int index() {
         return indexPara;
-	}
+    }
   private:
     ValueType output;
 };
 
 template<typename InputNodeTypePara, typename ValueTypePara, unsigned int indexPara>
 struct traits<ValueNode<InputNodeTypePara, ValueTypePara, indexPara>> {
-	using InputNodeTypes = std::tuple<InputNodeTypePara>;
-	using ValueType = ValueTypePara;
-	static constexpr unsigned int index = indexPara;
+    using InputNodeTypes = std::tuple<InputNodeTypePara>;
+    using ValueType = ValueTypePara;
+    static constexpr unsigned int index = indexPara;
 };
 
-
-
-
-
-
-
 }
-
 
 #endif

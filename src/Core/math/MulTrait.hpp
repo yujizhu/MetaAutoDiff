@@ -24,12 +24,12 @@ namespace ad_math {
     template<typename LeftValueTypePara, typename RightValueTypePara>
     struct mul_trait {
         using type = decltype(std::declval<LeftValueTypePara>() * std::declval<RightValueTypePara>());
-	};
+    };
     
-	template<>
-	struct mul_trait<ad_MatrixXd, ad_MatrixXd> {
-		using type = ad_MatrixXd;
-	};
+    template<>
+    struct mul_trait<ad_MatrixXd, ad_MatrixXd> {
+        using type = ad_MatrixXd;
+    };
     
 
 }

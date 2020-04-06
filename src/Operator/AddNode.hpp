@@ -27,21 +27,21 @@ namespace MetaAD {
 
 template<typename LeftNodeTypePara, typename RightNodeTypePara>
 struct AddNodeTrait {
-	using LeftNodeValueType = typename LeftNodeTypePara::ValueType;
-	using RightNodeValueType = typename RightNodeTypePara::ValueType;
-	using type = typename ad_math::add_trait<LeftNodeValueType, RightNodeValueType>::type;
+    using LeftNodeValueType = typename LeftNodeTypePara::ValueType;
+    using RightNodeValueType = typename RightNodeTypePara::ValueType;
+    using type = typename ad_math::add_trait<LeftNodeValueType, RightNodeValueType>::type;
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara>
 struct AddDerivativePolicy {
     using LeftNodeValueType = typename LeftInputNodeTypePara::ValueType;
-	using RightNodeValueType = typename RightInputNodeTypePara::ValueType;
-	using type = typename ad_math::add_derivative_policy<LeftNodeValueType, RightNodeValueType>;
+    using RightNodeValueType = typename RightInputNodeTypePara::ValueType;
+    using type = typename ad_math::add_derivative_policy<LeftNodeValueType, RightNodeValueType>;
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
          typename ValueTypePara = typename AddNodeTrait<LeftInputNodeTypePara, RightInputNodeTypePara>::type, 
-		 typename DerivativePolicyPara = typename AddDerivativePolicy<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
+         typename DerivativePolicyPara = typename AddDerivativePolicy<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
          bool legalPara = isNodeType<LeftInputNodeTypePara>::value && isNodeType<RightInputNodeTypePara>::value>
 class AddNode;
 
@@ -54,22 +54,18 @@ class AddEdge
   private:
     HeadNodeType* headNodePtr;
     AddNode* tailNodePtr;
-	DerivedValueType derivedValue;
+    DerivedValueType derivedValue;
   public:
-	using ValueType = DerivativeValueTypePara;
+    using ValueType = DerivativeValueTypePara;
     using HeadNodeType = Add;
-	using TailNodeType = HeadNodeTypePara;
-	AddEdge() = delete;
-	AddEdge(HeadNodeType* headNodePtrPara, Add* tailNodePtrPara, DerivedValueType derivedValuePara)
-		:headNodePtr(headNodePtrPara), tailNodePtr(tailNodePtrPara), derivedValue(derivedValuePara);
-		
-	DerivedDateType getValue(){ return derivedValue; }
+    using TailNodeType = HeadNodeTypePara;
+    AddEdge() = delete;
+    AddEdge(HeadNodeType* headNodePtrPara, Add* tailNodePtrPara, DerivedValueType derivedValuePara)
+        :headNodePtr(headNodePtrPara), tailNodePtr(tailNodePtrPara), derivedValue(derivedValuePara);
+
+    DerivedDateType getValue(){ return derivedValue; }
 };
-	
-	
 */
-
-
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara, 
          typename ValueTypePara, typename DerivativePolicyPara>
@@ -79,73 +75,72 @@ class AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTyp
     using Base = GraphNodeBase<AddNode>;
     using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
     using ValueType = ValueTypePara;
-	using DerivativePolicy = DerivativePolicyPara;
-	using ConcreteNodeType = AddNode;
-	static constexpr unsigned int index() {
-		return indexPara;
-	}
-	
-	AddNode(LeftInputNodeTypePara* inputNodeL, RightInputNodeTypePara* inputNodeR)
-	  : Base(), inputs(std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>(inputNodeL, inputNodeR)) {
+    using DerivativePolicy = DerivativePolicyPara;
+    using ConcreteNodeType = AddNode;
+    static constexpr unsigned int index() {
+        return indexPara;
+    }
+
+    AddNode(LeftInputNodeTypePara* inputNodeL, RightInputNodeTypePara* inputNodeR)
+      : Base(), inputs(std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>(inputNodeL, inputNodeR)) {
         output = inputNodeL->getValue() + inputNodeR->getValue();
-	}
+    }
 
     AddNode(const AddNode& rValue) = default;
-	//AddNode(const AddNode&& lvalue) = default;    //不确定要不要加移动构造函数，这要求所有的成员都具有移动构造函数
+    //AddNode(const AddNode&& lvalue) = default;    //不确定要不要加移动构造函数，这要求所有的成员都具有移动构造函数
     
-	// 拷贝赋值运算符
-	AddNode& operator=(const AddNode& rValue) = default;
+    // 拷贝赋值运算符
+    AddNode& operator=(const AddNode& rValue) = default;
 
     ValueType getValue() { return output; }   
     ValueType getValue() const { return output; }   
-	template<unsigned int variableIndex>
-	auto partialDerivative() const {
+    template<unsigned int variableIndex>
+    auto partialDerivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
-		auto derivativeValue =  DerivativePolicy::template derivative<variableIndex>(std::get<0>(inputs)->getValue(),
-		                                                                        std::get<1>(inputs)->getValue(),
-												                                output);
-		return derivativeValue;
-		/*
-		if constexpr (variableIndex == 0)
-		    return GradientEdge<AddNode, LeftInputNodeTypePara>(this, std::get<0>(inputs), derivativeValue);
-		else if constexpr (variableIndex == 1)
-		    return GradientEdge<AddNode, RightInputNodeTypePara>(this, std::get<1>(inputs), derivativeValue);
-		*/
-		
-	}
+        auto derivativeValue =  DerivativePolicy::template derivative<variableIndex>(std::get<0>(inputs)->getValue(),
+                                                                                     std::get<1>(inputs)->getValue(),
+                                                                                     output);
+        return derivativeValue;
+        /*
+        if constexpr (variableIndex == 0)
+            return GradientEdge<AddNode, LeftInputNodeTypePara>(this, std::get<0>(inputs), derivativeValue);
+        else if constexpr (variableIndex == 1)
+            return GradientEdge<AddNode, RightInputNodeTypePara>(this, std::get<1>(inputs), derivativeValue);
+        */	
+    }
     
-	
+
     // 这个偏导数可以用成员函数来实现，虽然函数不能被偏特化，但是函数是能被特化的，下面的偏导数可能实现都是基于函数模板的特化
-	// 实现的。
-	/*
-	template<unsigned int>
-	class _PartialDerivative;
+    // 实现的。
+    /*
+    template<unsigned int>
+    class _PartialDerivative;
 
     template<>
-	class _PartialDerivative<1> {
+    class _PartialDerivative<1> {
       public:
         static auto evulate() {
-        	using LeftInputNodeValueType = LeftInputNodeTypePara::ValueType;
-        	using RightInputNodeValueType = RightInputNodeTypePara::ValueType;
-        	using partialDerivativeType = ad_math::paratial_derivative_trait<ValueType, LeftInputNodeValueType>;      // 这里应该有一个trait，判断偏导数结果的类型
-        	return AddEdge<LeftInputNodeTypePara, PartialDerivedType>(input.get<1>(), this, math::OneValue<partialDervativeType>(1));
-		}
-	};
+            using LeftInputNodeValueType = LeftInputNodeTypePara::ValueType;
+            using RightInputNodeValueType = RightInputNodeTypePara::ValueType;
+            using partialDerivativeType = ad_math::paratial_derivative_trait<ValueType, LeftInputNodeValueType>;      // 这里应该有一个trait，判断偏导数结果的类型
+            return AddEdge<LeftInputNodeTypePara, PartialDerivedType>(input.get<1>(), this, math::OneValue<partialDervativeType>(1));
+        }
+    };
 
     template<>
-	class _PartialDerive<2> {
+    class _PartialDerive<2> {
       public:
-	    static auto evulate() {
-			using partialDerivativeType = 
-			return AddEdge<RightInputNodeTypePara, PartialDerivativeType>(input.get<2>(), this, partialDerivativeType(1));
-		}
-	}
+        static auto evulate() {
+            using partialDerivativeType = 
+            return AddEdge<RightInputNodeTypePara, PartialDerivativeType>(input.get<2>(), this, partialDerivativeType(1));
+        }
+    }
     */
     template<unsigned int n>
     friend struct ChainRuleExpansion;
   private:
     InputNodeTypes inputs;
-	ValueType output;
+    ValueType output;
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
@@ -153,9 +148,9 @@ template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsign
 struct traits<AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara,
                       DerivativePolicyPara, legalPara>> {
     using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
-	using ValueType = ValueTypePara;
-	using DerivativePolicy = DerivativePolicyPara;
-	static constexpr unsigned int index = indexPara;
+    using ValueType = ValueTypePara;
+    using DerivativePolicy = DerivativePolicyPara;
+    static constexpr unsigned int index = indexPara;
 };
 
 /*  // 下面这种形式暂时不行了
@@ -166,10 +161,10 @@ template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
 auto operator+(GraphNodeBase<ConcreteLeftNodeTypePara>& leftNode, 
                GraphNodeBase<ConcreteRightNodeTypePara>& rightNode) {
     
-	// 这里必须使用getPtrFromBase成员来返回指向Derived类型的指针，因为指针类型无法实现从基类到派生类的自动转换，而
-	// 该构造函数的形参类型都是指向派生类的指针，因此需要在GraphNodeBase中加上getPtrFromBase成员来返回指向派生类类型的指针
-	return AddNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara>(leftNode.getDerivedPtr(),
-	                                                                    rightNode.getDerivedPtr());
+    // 这里必须使用getPtrFromBase成员来返回指向Derived类型的指针，因为指针类型无法实现从基类到派生类的自动转换，而
+    // 该构造函数的形参类型都是指向派生类的指针，因此需要在GraphNodeBase中加上getPtrFromBase成员来返回指向派生类类型的指针
+    return AddNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara>(leftNode.getDerivedPtr(),
+                                                                        rightNode.getDerivedPtr());
 
 }
 
@@ -178,16 +173,13 @@ template<unsigned int indexPara, typename ConcreteLeftNodeTypePara, typename Con
 auto add(GraphNodeBase<ConcreteLeftNodeTypePara>& leftNode, 
          GraphNodeBase<ConcreteRightNodeTypePara>& rightNode) {
     
-	// 这里必须使用getPtrFromBase成员来返回指向Derived类型的指针，因为指针类型无法实现从基类到派生类的自动转换，而
-	// 该构造函数的形参类型都是指向派生类的指针，因此需要在GraphNodeBase中加上getPtrFromBase成员来返回指向派生类类型的指针
-	return AddNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>(leftNode.getDerivedPtr(),
-	                                                                    rightNode.getDerivedPtr());
+    // 这里必须使用getPtrFromBase成员来返回指向Derived类型的指针，因为指针类型无法实现从基类到派生类的自动转换，而
+    // 该构造函数的形参类型都是指向派生类的指针，因此需要在GraphNodeBase中加上getPtrFromBase成员来返回指向派生类类型的指针
+    return AddNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>(leftNode.getDerivedPtr(),
+                                                                        rightNode.getDerivedPtr());
 
 }
 
-
 }
-
-
 
 #endif
