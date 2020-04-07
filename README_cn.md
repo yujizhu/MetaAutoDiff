@@ -16,4 +16,4 @@ MetaAutoDiff当前仅支持double类型与ad_MatrixXd(内部实现为Eigen::Matr
 MetaAutoDiff当前不支持GPU加速计算。
 
 ## 已实现的操作符
-MetaAutoDiff当前仅支持加、乘算子，其他算子将在未来逐步添加进该程序库中。
+MetaAutoDiff当前仅支持加、减、乘算子，其他算子将在未来逐步添加进该程序库中。

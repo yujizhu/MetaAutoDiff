@@ -16,5 +16,5 @@ MetaAutoDiff only support double and ad::MatrixXd(internal implement type is Eig
 MetaAutoDiff doesn't support GPU now.
 
 ## Implemented Operators
-MetaAutoDiff only support addition and multiplication operator now, more operator will be supported in the future.
+MetaAutoDiff only support addition, subtraction and multiplication operator now, more operator will be supported in the future.
 
