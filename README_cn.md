@@ -2,7 +2,7 @@
 MetaAutoDiff是一个基于操作符重载的反向传播自动微分C++模板库。该模板库当前只支持一阶导数的计算，不支持前向传播。
 
 ## 依赖
-- [Eigne](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
 使用MetaAutoDiff需要包含Eigen's unsupported modules。
 
