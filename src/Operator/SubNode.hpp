@@ -16,7 +16,6 @@ limitations under the License. */
 #define METAAUTODIFF_SUBNODE_HPP
 
 #include "../Core/GraphNodeBase.hpp"
-#include "../Core/GraphEdgeBase.hpp"
 #include"../Core/math/Sub.hpp"
 #include<tuple>
 

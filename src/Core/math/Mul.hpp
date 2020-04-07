@@ -18,7 +18,6 @@ limitations under the License. */
 #include"../util/Meta.hpp"
 #include"PartialDerivativeTrait.hpp"
 #include"MulTrait.hpp"
-#include"MatrixWrapper.hpp"
 
 namespace MetaAD {
 

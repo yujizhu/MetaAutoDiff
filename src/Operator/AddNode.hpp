@@ -16,9 +16,6 @@ limitations under the License. */
 #define METAAUTODIFF_ADDNODE_HPP
 
 #include "../Core/GraphNodeBase.hpp"
-#include "../Core/GraphEdgeBase.hpp"
-#include"../Core/math/MatrixWrapper.hpp"
-#include "../Core/math/AddTrait.hpp"
 #include"../Core/math/Add.hpp"
 #include<tuple>
 

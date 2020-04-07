@@ -20,7 +20,6 @@ limitations under the License. */
 #include"../util/Meta.hpp"
 #include"PartialDerivativeTrait.hpp"
 #include"AddTrait.hpp"
-#include"MatrixWrapper.hpp"
 
 namespace MetaAD {
 
@@ -72,7 +71,7 @@ namespace ad_math {
         template<unsigned int variableIndex>
         static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 1>::value,
                                        OutputValueType>::type 
-        _derivative(const ad_MatrixXd& leftOperand, const ad_MatrixXd& rightOperand, const OutputValueType& output) {
+        derivative(const ad_MatrixXd& leftOperand, const ad_MatrixXd& rightOperand, const OutputValueType& output) {
         	auto rowLength = output.rows();
         	auto colLength = output.cols();
             return ad_MatrixXd::Identity(rowLength*colLength, rowLength*colLength); 

@@ -16,8 +16,6 @@ limitations under the License. */
 #define METAAUTODIFF_MULTNODE_HPP
 
 #include "../Core/GraphNodeBase.hpp"
-#include"../Core/math/MatrixWrapper.hpp"
-#include "../Core/math/MulTrait.hpp"
 #include"../Core/math/Mul.hpp"
 #include<tuple>
 
