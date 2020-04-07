@@ -1,4 +1,7 @@
 # MetaAutoDiff
+
+English | [简体中文](./README_cn.md)
+
 MetaAutoDiff is a C++ template library for automatic differentiation in reverse mode based on operator-overloading. MetaAutoDiff only supports first order derivative now. This project doesn't provide forward mode now.
 
 ## Dependencies
