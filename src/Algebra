@@ -1,0 +1,21 @@
+#ifndef METAAUTODIFF_ALGEBRA_H
+#define METAAUTODIFF_ALGEBRA_H
+
+#include"Operator/AddNode.hpp"
+#include"Operator/MulNode.hpp"
+#include"Operator/SubNode.hpp"
+#include"Core/ValueNode.hpp"
+#include"Core/CalcPartialDerivative.hpp"
+
+namespace MetaAD {
+    template<unsigned int indexPara>
+    using INT = MetaAD::ValueNode<MetaAD::NullTypeNode, int, indexPara>;
+
+    template<unsigned int indexPara>
+    using DOUBLE = MetaAD::ValueNode<MetaAD::NullTypeNode, double, indexPara>;
+
+    template<unsigned int indexPara>
+    using MATRIXXD = MetaAD::ValueNode<MetaAD::NullTypeNode, MetaAD::ad_MatrixXd, indexPara>;
+}
+
+#endif
