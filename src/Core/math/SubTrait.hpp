@@ -24,7 +24,7 @@ namespace ad_math {
 
     template<typename LeftValueTypePara, typename RightValueTypePara>
     struct sub_trait {
-        using type = decltype(std::declval<LeftValueTypePara>() + std::declval<RightValueTypePara>());
+        using type = decltype(std::declval<LeftValueTypePara>() - std::declval<RightValueTypePara>());
     };
     
     template<>
