@@ -31,7 +31,7 @@ class GraphNodeBase {
     using ValueType = typename traits<Derived>::ValueType;
     // InputNodeTypes一定是一个tuple类型，tuple中存放该节点的输入节点的指针类型，顺序与该算子对输入顺序的定义相关。
     using InputNodeTypes = typename traits<Derived>::InputNodeTypes;
-    //using DerivativePolicy = typename traits<Derived>::DerivativePolicy;
+    //using Policy = typename traits<Derived>::Policy;
     ValueType getValue() {
         return derived()-> getValue();
     };

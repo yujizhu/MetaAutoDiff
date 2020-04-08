@@ -30,15 +30,15 @@ struct AddNodeTrait {
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara>
-struct AddDerivativePolicy {
+struct AddPolicyDefault {
     using LeftNodeValueType = typename LeftInputNodeTypePara::ValueType;
     using RightNodeValueType = typename RightInputNodeTypePara::ValueType;
-    using type = typename ad_math::add_derivative_policy<LeftNodeValueType, RightNodeValueType>;
+    using type = typename ad_math::add_policy<LeftNodeValueType, RightNodeValueType>;
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
          typename ValueTypePara = typename AddNodeTrait<LeftInputNodeTypePara, RightInputNodeTypePara>::type, 
-         typename DerivativePolicyPara = typename AddDerivativePolicy<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
+         typename PolicyPara = typename AddPolicyDefault<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
          bool legalPara = isNodeType<LeftInputNodeTypePara>::value && isNodeType<RightInputNodeTypePara>::value>
 class AddNode;
 
@@ -65,14 +65,14 @@ class AddEdge
 */
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara, 
-         typename ValueTypePara, typename DerivativePolicyPara>
-class AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, DerivativePolicyPara, true>
-  : public GraphNodeBase<AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, DerivativePolicyPara,true>> {
+         typename ValueTypePara, typename PolicyPara>
+class AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
+  : public GraphNodeBase<AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
   public:
     using Base = GraphNodeBase<AddNode>;
     using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
     using ValueType = ValueTypePara;
-    using DerivativePolicy = DerivativePolicyPara;
+    using Policy = PolicyPara;
     using ConcreteNodeType = AddNode;
     static constexpr unsigned int index() {
         return indexPara;
@@ -94,7 +94,7 @@ class AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTyp
     template<unsigned int variableIndex>
     auto partialDerivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
-        auto derivativeValue =  DerivativePolicy::template derivative<variableIndex>(std::get<0>(inputs)->getValue(),
+        auto derivativeValue =  Policy::template derivative<variableIndex>(std::get<0>(inputs)->getValue(),
                                                                                      std::get<1>(inputs)->getValue(),
                                                                                      output);
         return derivativeValue;
@@ -141,12 +141,12 @@ class AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTyp
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
-         typename ValueTypePara, typename DerivativePolicyPara, bool legalPara>
+         typename ValueTypePara, typename PolicyPara, bool legalPara>
 struct traits<AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara,
-                      DerivativePolicyPara, legalPara>> {
+                      PolicyPara, legalPara>> {
     using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
     using ValueType = ValueTypePara;
-    using DerivativePolicy = DerivativePolicyPara;
+    using Policy = PolicyPara;
     static constexpr unsigned int index = indexPara;
 };
 

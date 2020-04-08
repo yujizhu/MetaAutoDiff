@@ -30,27 +30,27 @@ struct MulNodeTrait {
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara>
-struct MulDerivativePolicy {
+struct MulPolicyDefault {
     using LeftNodeValueType = typename LeftInputNodeTypePara::ValueType;
     using RightNodeValueType = typename RightInputNodeTypePara::ValueType;
-    using type = typename ad_math::mul_derivative_policy<LeftNodeValueType, RightNodeValueType>;
+    using type = typename ad_math::mul_policy<LeftNodeValueType, RightNodeValueType>;
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
          typename ValueTypePara = typename MulNodeTrait<LeftInputNodeTypePara, RightInputNodeTypePara>::type, 
-         typename DerivativePolicyPara = typename MulDerivativePolicy<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
+         typename PolicyPara = typename MulPolicyDefault<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
          bool legalPara = isNodeType<LeftInputNodeTypePara>::value && isNodeType<RightInputNodeTypePara>::value>
 class MulNode;
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara, 
-         typename ValueTypePara, typename DerivativePolicyPara>
-class MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, DerivativePolicyPara, true>
-  : public GraphNodeBase<MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, DerivativePolicyPara,true>> {
+         typename ValueTypePara, typename PolicyPara>
+class MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
+  : public GraphNodeBase<MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
   public:
     using Base = GraphNodeBase<MulNode>;
     using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
     using ValueType = ValueTypePara;
-    using DerivativePolicy = DerivativePolicyPara;
+    using DerivativePolicy = PolicyPara;
     using ConcreteNodeType = MulNode;
     static constexpr unsigned int index() {
         return indexPara;
@@ -92,12 +92,12 @@ class MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTyp
 };
 
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
-         typename ValueTypePara, typename DerivativePolicyPara, bool legalPara>
+         typename ValueTypePara, typename PolicyPara, bool legalPara>
 struct traits<MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara,
-                      DerivativePolicyPara, legalPara>> {
+                      PolicyPara, legalPara>> {
     using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
     using ValueType = ValueTypePara;
-    using DerivativePolicy = DerivativePolicyPara;
+    using Policy = PolicyPara;
     static constexpr unsigned int index = indexPara;
 };
 

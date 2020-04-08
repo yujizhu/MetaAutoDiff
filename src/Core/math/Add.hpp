@@ -25,10 +25,10 @@ namespace MetaAD {
 
 namespace ad_math {
     template<typename LeftValueTypePara, typename RightValueTypePara>
-    struct add_derivative_policy;
+    struct add_policy;
 
     template<>
-    struct add_derivative_policy<double, double> {
+    struct add_policy<double, double> {
         using OutputValueType = typename add_trait<double, double>::type;
         using DerivativeValueType = typename ad_math::partial_derivative_trait<double, double>::type;
         template<unsigned int variableIndex> 
@@ -50,7 +50,7 @@ namespace ad_math {
 
 
     template<>
-    struct add_derivative_policy<ad_MatrixXd, ad_MatrixXd> {
+    struct add_policy<ad_MatrixXd, ad_MatrixXd> {
         using OutputValueType = typename add_trait<ad_MatrixXd, ad_MatrixXd>::type;
         using DerivativeValueType = typename ad_math::partial_derivative_trait<ad_MatrixXd, ad_MatrixXd>::type;
         template<unsigned int variableIndex> 
