@@ -46,6 +46,10 @@ namespace ad_math {
             return 1; 
         };
         */
+        
+        static OutputValueType compute(double leftOperand, double rightOperand) {
+            return leftOperand + rightOperand;
+        }
     };
 
 
@@ -77,6 +81,10 @@ namespace ad_math {
             return ad_MatrixXd::Identity(rowLength*colLength, rowLength*colLength); 
         };
         */
+        static OutputValueType compute(const ad_MatrixXd& leftOperand, const ad_MatrixXd& rightOperand) {
+            assert((leftOperand.rows() == rightOperand.rows() && leftOperand.cols() == rightOperand.cols()));
+            return leftOperand + rightOperand;
+        }
     };
 }
 

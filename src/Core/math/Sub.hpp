@@ -44,6 +44,9 @@ namespace ad_math {
         derivative(double leftOperand, double rightOperand, OutputValueType output) {
             return -1; 
         };
+        static OutputValueType compute(double leftOperand, double rightOperand) {
+            return leftOperand - rightOperand;
+        }
     };
 
 
@@ -75,6 +78,10 @@ namespace ad_math {
             DerivativeValueType result = -ad_MatrixXd::Identity(rowLength*colLength, rowLength*colLength); 
             return result; 
         };
+        static OutputValueType compute(const ad_MatrixXd& leftOperand, const ad_MatrixXd& rightOperand) {
+            assert((leftOperand.rows() == rightOperand.rows() && leftOperand.cols() == rightOperand.cols()));
+            return leftOperand - rightOperand;
+        }
     };
 }
 

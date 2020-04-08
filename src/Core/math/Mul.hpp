@@ -42,6 +42,9 @@ namespace ad_math {
         derivative(double leftOperand, double rightOperand, OutputValueType output) {
             return leftOperand; 
         };
+        static OutputValueType compute(double leftOperand, double rightOperand) {
+            return leftOperand * rightOperand;
+        }
 
     };
 
@@ -76,6 +79,10 @@ namespace ad_math {
                     Eigen::kroneckerProduct(leftOperand, ad_MatrixXd::Identity(rightOperand.cols(), rightOperand.cols()));
             return result; 
         };
+        static OutputValueType compute(const ad_MatrixXd leftOperand, const ad_MatrixXd& rightOperand) {
+            assert(leftOperand.cols() == rightOperand.rows());
+            return leftOperand * rightOperand;
+        }
     };
 }
 
