@@ -15,8 +15,10 @@ limitations under the License. */
 #ifndef METAAUTODIFF_ADDNODE_HPP
 #define METAAUTODIFF_ADDNODE_HPP
 
-#include "../Core/GraphNodeBase.hpp"
+#include"../Core/GraphNodeBase.hpp"
 #include"../Core/math/Add.hpp"
+#include"../Core/ValueNode.hpp"
+#include"../Core/math/SpecialType.hpp"
 #include<tuple>
 
 namespace MetaAD {
@@ -104,6 +106,14 @@ class AddNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTyp
         else if constexpr (variableIndex == 1)
             return GradientEdge<AddNode, RightInputNodeTypePara>(this, std::get<1>(inputs), derivativeValue);
         */	
+    }
+
+    // Another implementation of derivation for first order derivation.
+    template<unsigned int variableIndex>
+    auto derivative() const {
+        static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
+        return ValueNode<NullTypeNode, IdendityType, traits<LeftInputNodeTypePara>::value + traits<RightInputNodeTypePara>::value>(IdendityType{});
+        // 用这种方式定义index是为了尽量避免同一个计算图中出现相同的节点。
     }
     
 
