@@ -16,6 +16,7 @@ limitations under the License. */
 #define METAAUTODIFF_VALUENODE_HPP
 
 #include"GraphNodeBase.hpp"
+#include<memory>
 #include<Tuple>
 
 namespace MetaAD {
@@ -26,9 +27,10 @@ class ValueNode
   : public GraphNodeBase<ValueNode<InputNodeTypePara, ValueTypePara, indexPara>> {
   public:
     using Base = GraphNodeBase<ValueNode>;
-    using InputNodeTypes = std::tuple<InputNodeTypePara*>;
+    using InputNodeTypes = std::tuple<std::shared_ptr<InputNodeTypePara>>;
     using ValueType = ValueTypePara;
     using ConcreteNodeType = ValueNode;
+    ValueNode(std::shared_ptr<InputNodeTypePara> inputNode) : Base(), InputNodeTypes(inputNode), output(inputNode->getValue()) {} 
     ValueNode(const ValueType& valuePara) : Base(), output(valuePara) {} 
     ValueNode() = default;
     operator ValueType() { return output; }
@@ -43,7 +45,7 @@ class ValueNode
 
 template<typename InputNodeTypePara, typename ValueTypePara, unsigned int indexPara>
 struct traits<ValueNode<InputNodeTypePara, ValueTypePara, indexPara>> {
-    using InputNodeTypes = std::tuple<InputNodeTypePara>;
+    using InputNodeTypes = std::tuple<std::shared_ptr<InputNodeTypePara>>;
     using ValueType = ValueTypePara;
     static constexpr unsigned int index = indexPara;
 };

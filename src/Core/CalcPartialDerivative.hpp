@@ -22,6 +22,10 @@ limitations under the License. */
 #include"math/SpecialType.hpp"
 #include"math/PartialDerivativeTrait.hpp"
 
+#include"../Operator/AddNode.hpp"
+#include"../Operator/MulNode.hpp"
+#include"SpecialNode.hpp"
+
 
 namespace MetaAD {
 
@@ -76,19 +80,20 @@ struct has_dependence_imp {
                                                      has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, n-1>
                                                     >::value;
     */
-    static constexpr bool value = internal::logic_or<has_dependence<typename internal::remove_pointer<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>::value,						   
+    // 为了新的接口，这里改了！！！！！！！！老接口不能用了
+    static constexpr bool value = internal::logic_or<has_dependence<typename std::tuple_element<n, typename HeadNodeTypePara::InputNodeTypes>::type::element_type, TailNodeTypePara>::value,						   
                                                      has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, n-1>
                                                     >::value;
 };
 
 template<typename HeadNodeTypePara, typename TailNodeTypePara>
-struct has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, 0> {
-    static constexpr bool value = internal::logic_or<std::is_same<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>, TailNodeTypePara>::value,
-                                                     has_dependence<typename internal::remove_pointer<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>::type>::type, TailNodeTypePara>
+struct has_dependence_imp<HeadNodeTypePara, TailNodeTypePara, 0> {// 下面这个is_same好像可以不用加，因为前面有两个节点类型相同时的特化
+    static constexpr bool value = internal::logic_or<std::is_same<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>, std::shared_ptr<TailNodeTypePara>>::value,
+                                                     has_dependence<typename std::tuple_element<0, typename HeadNodeTypePara::InputNodeTypes>::type::element_type, TailNodeTypePara>
                                                     >::value;
 
 };
-
+/*
 // ChainRuleExpansion
 template<unsigned int n>
 struct ChainRuleExpansion;
@@ -175,6 +180,114 @@ calcPartialDerivative(GraphNodeBase<DependentVariablePara>* dependentVariable, G
                                                        (dependentVariable->getDerivedPtr(), independentVariable->getDerivedPtr(), derivative);
     return result;
 }
+
+*/
+// Add a new method for higher order derivatives, the old one is difficult to calculate higher order derivatives.
+// In addition, this framework still retains the old method.
+// The following codes still have something wrong. The return value will be destructed after function calling. There must
+// a solution to avoid this situation. One solution is to use smart pointer like shared_ptr. 
+template<unsigned int n>
+struct ChainRuleExpansion_temp;
+
+//// For same node type
+template<typename NodeTypePara>
+auto
+_calcPartialDerivative_temp(const std::shared_ptr<NodeTypePara>& dependentVariable, const std::shared_ptr<NodeTypePara>& independentVariable) {
+    //std::cout << "in 0" << std::endl;
+    using DerivativeNodeType = IdendityNode<NodeTypePara::index(), typename NodeTypePara::ValueType>;
+    return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
+}
+
+// For other situation
+// 这个函数一定会将derivative节点计算出来，DerivativeLookup交给wrapper函数调用
+template<typename DependentVariablePara, typename IndependentVariablePara>
+auto _calcPartialDerivative_temp(const std::shared_ptr<DependentVariablePara>& dependentVariable, const std::shared_ptr<IndependentVariablePara>& independentVariable) {
+    static_assert((!isBaseNodeType<DependentVariablePara>::value) && (!isBaseNodeType<IndependentVariablePara>::value), "Node type couldn't be NodeBaseType!");
+    if constexpr (has_dependence<DependentVariablePara, IndependentVariablePara>::value) {
+        auto result = ChainRuleExpansion_temp<std::tuple_size<typename DependentVariablePara::InputNodeTypes>::value - 1
+                                             >::expansion(dependentVariable, independentVariable);
+        return result;
+    }
+    else {
+        // 因为链式法则，所以ZeroNode应该以dependentVariable的值为种子产生
+        using DerivativeNodeType = ZeroNode<DependentVariablePara::index(), typename DependentVariablePara::ValueType>;
+        return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
+    }
+}
+
+template<unsigned int n>
+struct ChainRuleExpansion_temp {
+    template<typename DependentVariablePara, typename IndependentVariablePara>
+    static auto
+    expansion(std::shared_ptr<DependentVariablePara> dependentVariable,
+              std::shared_ptr<IndependentVariablePara> independentVariable) {
+        static_assert((n > 0) || (n == 0), "Invalid variable index!");
+        if constexpr (n > 0) {
+            /*
+            if constexpr (std::is_same<DependentVariablePara, IndependentVariablePara>::value) {
+                using DerivativeNodeType = IdendityNode<NodeTypePara::index(), typename NodeTypePara::ValueType>;
+                return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
+            }
+            else {
+                using InputNodeType = typename std::tuple_element<n, typename DependentVariablePara::InputNodeTypes>::type::element_type;
+                if constexpr (has_dependence<InputNodeType, IndependentVariablePara>::value) {
+                    auto temp1 = dependentVariable -> template derivative<n>();
+                    auto temp2 = ChainRuleExpansion_temp<std::tuple_size<typename InputNodeType::InputNodeTypes>::value>::expansion(std::get<n>(dependentVariable->inputs), independentVariable);
+                    auto temp3 = mulImp(temp1, temp2);
+                    auto temp4 = ChainRuleExpansion_temp<n-1>::expansion(dependentVariable, independentVariable);
+                    auto result = addImp(temp3, temp4);
+                    return result;
+                }
+                else {
+                    auto result = ChainRuleExpansion_temp<n-1>::expansion(dependentVariable, independentVariable);
+                    return result;
+                }
+
+            }
+            */
+           auto temp1 = dependentVariable -> template derivative<n>();
+           auto temp2 = _calcPartialDerivative_temp(std::get<n>(dependentVariable->inputs), independentVariable);
+           auto temp3 = mulImp(temp1, temp2);
+           auto temp4 = ChainRuleExpansion_temp<n-1>::expansion(dependentVariable, independentVariable);
+           auto result = addImp(temp3, temp4);
+           return result;
+        }
+        else {
+            /*
+             if constexpr (std::is_same<DependentVariablePara, IndependentVariablePara>::value) {
+                using DerivativeNodeType = IdendityNode<NodeTypePara::index(), typename NodeTypePara::ValueType>;
+                return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
+            }
+            else {
+                using InputNodeType = typename std::tuple_element<n, typename DependentVariablePara::InputNodeTypes>::type::element_type;
+                if constexpr (has_dependence<InputNodeType, IndependentVariablePara>::value) {
+                    auto temp1 = dependentVariable -> template derivative<n>();
+                    auto temp2 = ChainRuleExpansion_temp<std::tuple_size<typename InputNodeType::InputNodeTypes>::value>::expansion(std::get<n>(dependentVariable->inputs), independentVariable);
+                    auto temp3 = mulImp(temp1, temp2);
+                    auto temp4 = ChainRuleExpansion_temp<n-1>::expansion(dependentVariable, independentVariable);
+                    auto result = addImp(temp3, temp4);
+                    return result;
+                }
+                else {
+                    auto result = ChainRuleExpansion_temp<n-1>::expansion(dependentVariable, independentVariable);
+                    return result;
+                }
+
+            }
+            */
+            auto temp1 = dependentVariable -> template derivative<0>();
+            auto temp2 = _calcPartialDerivative_temp(std::get<0>(dependentVariable->inputs), independentVariable);
+            auto result = mulImp(temp1, temp2);
+            return result;
+        }
+    }
+};
+
+template<unsigned int order, typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
+auto calcPartialDerivative_temp(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode, const NodeWrapper<ConcreteRightNodeTypePara>& rightNode) {
+    return _calcPartialDerivative_temp(leftNode.pNode, rightNode.pNode);
+}
+
 
 }
 

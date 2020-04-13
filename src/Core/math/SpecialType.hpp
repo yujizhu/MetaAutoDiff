@@ -84,7 +84,106 @@ std::ostream & operator<<(std::ostream & a, IdendityType b) {
     return a;
 }
 
-// IdendityType does't support operator+.
 
+
+
+
+
+
+
+// IdendityType does't support operator+.
+template<typename ValueType>
+class IdendityType_TMP;
+
+template<>
+class IdendityType_TMP<double> {
+  public:
+    IdendityType_TMP() : value(1) {}
+    IdendityType_TMP(double valuePara) : value(1) {} 
+    double getValue() {
+        return value;
+    }
+    operator double(){
+        return 1;
+    }
+  private:
+    double value;
+};
+
+template<typename ValueType>
+class ZeroType_TMP;
+
+template<>
+class ZeroType_TMP<double> {
+  public:
+    ZeroType_TMP() : value(0) {}
+    ZeroType_TMP(double valuePara) : value(0) {}
+    double getValue() {
+        return value;
+    }
+    operator double() {
+        return 0;
+    }
+  private:
+    double value;
+};
+
+// 这里要不要限定T和ValueType为相同类型？
+template<typename T, typename ValueType>
+T operator+(const ZeroType_TMP<ValueType>& leftValue, const T& rightValue) {
+    return rightValue;
+}
+
+template<typename T, typename ValueType>
+T operator+(const T& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
+    return leftValue;
+}
+
+template<typename ValueType>
+ZeroType_TMP<ValueType> operator+(const ZeroType_TMP<ValueType>& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
+    return ZeroType_TMP<ValueType>();
+}
+
+template<typename T, typename ValueType>
+ZeroType_TMP<ValueType> operator*(const ZeroType_TMP<ValueType>& leftValue, const T& rightValue) {
+    return ZeroType_TMP<ValueType>();
+}
+
+template<typename T, typename ValueType>
+ZeroType_TMP<ValueType> operator*(const T& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
+    return ZeroType_TMP<ValueType>();
+}
+
+template<typename ValueType>
+ZeroType_TMP<ValueType> operator*(const ZeroType_TMP<ValueType>& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
+    return ZeroType_TMP<ValueType>(leftValue.getValue() * rightValue.getValue());
+}
+
+template<typename T>
+T operator*(const IdendityType_TMP<T>& leftValue, const T& rightValue) {
+    return rightValue;
+}
+
+template<typename T>
+T operator*(const T& leftValue, const IdendityType_TMP<T>& rightValue) {
+    return leftValue;
+}
+
+template<typename ValueType>
+IdendityType operator*(const IdendityType_TMP<ValueType>& leftValue, const IdendityType_TMP<ValueType>& rightValue) {
+    return IdendityType_TMP<ValueType>(leftValue.getValue() * rightValue.getValue());
+}
+
+/*
+std::ostream & operator<<(std::ostream & a, ZeroType b) {
+    std::cout << "Zero" << std::endl;
+    return a;
+}
+
+std::ostream & operator<<(std::ostream & a, IdendityType b) {
+    std::cout << "Idendity" << std::endl;
+    return a;
+}
+*/
 }
 #endif

@@ -73,6 +73,21 @@ struct isNodeType<NullTypeNode> {
     static constexpr bool value = true;
 };
 
+template<typename NodeTypePara, bool legal = isNodeType<NodeTypePara>::value>
+struct isBaseNodeType;
+
+template<typename NodeTypePara>
+struct isBaseNodeType<NodeTypePara, true> {
+    static constexpr bool value = false;
+};
+
+template<typename ConcreteNodeTypePara>
+struct isBaseNodeType<GraphNodeBase<ConcreteNodeTypePara>, true> {
+    static constexpr bool value = true;
+};
+
+
+
 }
 
 #endif

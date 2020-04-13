@@ -15,10 +15,10 @@ limitations under the License. */
 #ifndef METAAUTODIFF_ADDNODE_HPP
 #define METAAUTODIFF_ADDNODE_HPP
 
-#include"../Core/GraphNodeBase.hpp"
 #include"../Core/math/Add.hpp"
-#include"../Core/ValueNode.hpp"
-#include"../Core/math/SpecialType.hpp"
+//#include"../Core/ValueNode.hpp"
+#include"../Core/SpecialNode.hpp"
+#include"../Core/NodeWrapper.hpp"
 #include<tuple>
 
 namespace MetaAD {
@@ -176,16 +176,149 @@ auto operator+(GraphNodeBase<ConcreteLeftNodeTypePara>& leftNode,
 }
 
 */
+
 template<unsigned int indexPara, typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
-auto add(GraphNodeBase<ConcreteLeftNodeTypePara>& leftNode, 
-         GraphNodeBase<ConcreteRightNodeTypePara>& rightNode) {
+typename std::enable_if<!isZeroNode<ConcreteLeftNodeTypePara>::value && !isZeroNode<ConcreteRightNodeTypePara>::value,
+                        AddNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>>::type
+add(GraphNodeBase<ConcreteLeftNodeTypePara>& leftNode, 
+    GraphNodeBase<ConcreteRightNodeTypePara>& rightNode) {
     
     // 这里必须使用getPtrFromBase成员来返回指向Derived类型的指针，因为指针类型无法实现从基类到派生类的自动转换，而
     // 该构造函数的形参类型都是指向派生类的指针，因此需要在GraphNodeBase中加上getPtrFromBase成员来返回指向派生类类型的指针
     return AddNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>(leftNode.getDerivedPtr(),
                                                                         rightNode.getDerivedPtr());
+}
+
+
+
+
+// new implementation for AddNode
+template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
+         typename ValueTypePara = typename AddNodeTrait<LeftInputNodeTypePara, RightInputNodeTypePara>::type, 
+         typename PolicyPara = typename AddPolicyDefault<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
+         bool legalPara = isNodeType<LeftInputNodeTypePara>::value && isNodeType<RightInputNodeTypePara>::value>
+class AddNodeImp;
+
+template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara, 
+         typename ValueTypePara, typename PolicyPara>
+class AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
+  : public GraphNodeBase<AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
+  public:
+    using Base = GraphNodeBase<AddNodeImp>;
+    using InputNodeTypes = std::tuple<std::shared_ptr<LeftInputNodeTypePara>, std::shared_ptr<RightInputNodeTypePara>>;
+    using ValueType = ValueTypePara;
+    using Policy = PolicyPara;
+    using ConcreteNodeType = AddNodeImp;
+    static constexpr unsigned int index() {
+        return indexPara;
+    }
+
+    AddNodeImp(std::shared_ptr<LeftInputNodeTypePara> inputNodeL, std::shared_ptr<RightInputNodeTypePara> inputNodeR)
+      : Base(), inputs(InputNodeTypes(inputNodeL, inputNodeR)) {
+        output = inputNodeL->getValue() + inputNodeR->getValue();
+    }
+
+    //AddNodeImp(const AddNodeImp& rValue) = default;
+    //AddNode(const AddNode&& lvalue) = default;    //不确定要不要加移动构造函数，这要求所有的成员都具有移动构造函数
+    
+    // 拷贝赋值运算符
+    AddNodeImp& operator=(const AddNodeImp& rValue) = default;
+
+    ValueType getValue() { return output; }   
+    ValueType getValue() const { return output; }   
+    template<unsigned int variableIndex>
+    auto partialDerivative() const {
+        static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
+        auto derivativeValue =  Policy::template derivative<variableIndex>(std::get<0>(inputs)->getValue(),
+                                                                                     std::get<1>(inputs)->getValue(),
+                                                                                     output);
+        return derivativeValue;
+    }
+
+    // Another implementation of derivation for first order derivation.
+    template<unsigned int variableIndex>
+    auto derivative() const {
+        static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
+        using DependentNodeType = typename std::tuple_element<variableIndex, InputNodeTypes>::type::element_type;
+        using DerivativeNodeType = IdendityNode<DependentNodeType::index(), typename DependentNodeType::ValueType>;
+        return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<variableIndex>(inputs)->getValue()));
+        // 用这种方式定义index是为了尽量避免同一个计算图中出现相同的节点。
+    }
+    
+    template<unsigned int n>
+    friend struct ChainRuleExpansion;
+
+    template<unsigned int n>
+    friend struct ChainRuleExpansion_temp;
+  private:
+    InputNodeTypes inputs;
+    ValueType output;
+};
+
+template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
+         typename ValueTypePara, typename PolicyPara, bool legalPara>
+struct traits<AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara,
+                      PolicyPara, legalPara>> {
+    using InputNodeTypes = std::tuple<std::shared_ptr<LeftInputNodeTypePara>, std::shared_ptr<RightInputNodeTypePara>>;
+    using ValueType = ValueTypePara;
+    using Policy = PolicyPara;
+    static constexpr unsigned int index = indexPara;
+};
+
+template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara>
+using AddNode_TMP = NodeWrapper<AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara>>;
+
+template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara,
+         unsigned int indexPara = traits<ConcreteLeftNodeTypePara>::index + traits<ConcreteRightNodeTypePara>::index>
+typename std::enable_if<(!isZeroNode<ConcreteLeftNodeTypePara>::value) && (!isZeroNode<ConcreteRightNodeTypePara>::value),
+                        std::shared_ptr<AddNodeImp<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>>>::type
+addImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
+    
+    using NodeType = AddNodeImp<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>;
+    return std::shared_ptr<NodeType>(new NodeType(leftNode, rightNode));//这里必须要访问NodeWrapper的pNode成员，因此我将该成员设为了public， 但是这样暴露得了内部实现，应该怎么做。
 
 }
+
+template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara,
+         unsigned int indexPara = traits<ConcreteLeftNodeTypePara>::index + traits<ConcreteRightNodeTypePara>::index>
+typename std::enable_if<(isZeroNode<ConcreteLeftNodeTypePara>::value) && (isZeroNode<ConcreteRightNodeTypePara>::value),
+                        std::shared_ptr<ConcreteLeftNodeTypePara>>::type
+addImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
+    
+    using NodeType = ZeroNode<ConcreteLeftNodeTypePara::index() + ConcreteRightNodeTypePara::index(),
+                              typename ConcreteLeftNodeTypePara::ValueType>;
+    return leftNode; 
+    // 这里我选择直接返回任意一个ZeroNode节点，而不是用leftNode和rightNode的getValue()值生成一个新的ZeroNode节点，因为这两个
+    // getValue()有可能无法相加，例如两个矩阵但是行列不匹配。
+
+}
+
+template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara,
+         unsigned int indexPara = traits<ConcreteRightNodeTypePara>::index>
+typename std::enable_if<isZeroNode<ConcreteLeftNodeTypePara>::value && (!isZeroNode<ConcreteRightNodeTypePara>::value),
+                        std::shared_ptr<ConcreteRightNodeTypePara>>::type
+addImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
+    return rightNode;
+}
+
+template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara,
+         unsigned int indexPara = traits<ConcreteLeftNodeTypePara>::index>
+typename std::enable_if<(!isZeroNode<ConcreteLeftNodeTypePara>::value) && isZeroNode<ConcreteRightNodeTypePara>::value,
+                        std::shared_ptr<ConcreteLeftNodeTypePara>>::type
+addImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
+    return leftNode;
+}
+
+// 对两个ZeroNode做加法
+
+
+template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
+auto operator+(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode, const NodeWrapper<ConcreteRightNodeTypePara>& rightNode) {
+    auto concreteResultNodePtr = addImp(leftNode.pNode, rightNode.pNode);
+    using concreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
+    return NodeWrapper<concreteResultNodeType>(concreteResultNodePtr);
+}
+
 
 }
 
