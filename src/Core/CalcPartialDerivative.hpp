@@ -285,7 +285,9 @@ struct ChainRuleExpansion_temp {
 
 template<unsigned int order, typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
 auto calcPartialDerivative_temp(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode, const NodeWrapper<ConcreteRightNodeTypePara>& rightNode) {
-    return _calcPartialDerivative_temp(leftNode.pNode, rightNode.pNode);
+    auto derivativeNodePtr = _calcPartialDerivative_temp(leftNode.pNode, rightNode.pNode);
+    using DerivativeNodeType = typename decltype(derivativeNodePtr)::element_type;
+    return NodeWrapper<DerivativeNodeType>(derivativeNodePtr);
 }
 
 

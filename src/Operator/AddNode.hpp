@@ -222,7 +222,7 @@ class AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
     //AddNode(const AddNode&& lvalue) = default;    //不确定要不要加移动构造函数，这要求所有的成员都具有移动构造函数
     
     // 拷贝赋值运算符
-    AddNodeImp& operator=(const AddNodeImp& rValue) = default;
+    //AddNodeImp& operator=(const AddNodeImp& rValue) = default;
 
     ValueType getValue() { return output; }   
     ValueType getValue() const { return output; }   
@@ -309,16 +309,12 @@ addImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std::sha
     return leftNode;
 }
 
-// 对两个ZeroNode做加法
-
-
 template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
 auto operator+(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode, const NodeWrapper<ConcreteRightNodeTypePara>& rightNode) {
     auto concreteResultNodePtr = addImp(leftNode.pNode, rightNode.pNode);
-    using concreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
-    return NodeWrapper<concreteResultNodeType>(concreteResultNodePtr);
+    using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
+    return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
-
 
 }
 

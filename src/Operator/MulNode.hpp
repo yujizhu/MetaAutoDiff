@@ -144,7 +144,7 @@ class MulNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
         output = inputNodeL->getValue() * inputNodeR->getValue();
     }
 
-    MulNodeImp(const MulNodeImp& rValue) = default;
+    //MulNodeImp(const MulNodeImp& rValue) = default;
     //MulNode(const MulNode&& lvalue) = default;    //不确定要不要加移动构造函数，这要求所有的成员都具有移动构造函数
     
     // 拷贝赋值运算符，赋值运算符是否要加？如果保证计算图中的所有节点类型都不同的话，就不需要拷贝赋值操作了。
@@ -267,8 +267,8 @@ template<typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
 auto operator*(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode, 
                const NodeWrapper<ConcreteRightNodeTypePara>& rightNode) {
     auto concreteResultNodePtr = mulImp(leftNode.pNode, rightNode.pNode);
-    using concreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
-    return NodeWrapper<concreteResultNodeType>(concreteResultNodePtr);
+    using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
+    return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
 
 

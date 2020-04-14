@@ -21,7 +21,8 @@ limitations under the License. */
 
 namespace MetaAD{
 
-template<typename NodeTypePara, bool legal = isNodeType<NodeTypePara>::value && (!(isBaseNodeType<NodeTypePara>::value))>
+template<typename NodeTypePara, bool legal = isNodeType<NodeTypePara>::value 
+                                       && (!(isBaseNodeType<NodeTypePara>::value))>
 class NodeWrapper;
 
 template<typename NodeTypePara>
@@ -32,16 +33,25 @@ class NodeWrapper<NodeTypePara, true> {
     //NodeWrapper(const NodeWrapper& rhs) = default;
 
     template<unsigned int variableIndex>
-    auto derivative() {
-        return pNode->template derivative<variableIndex>();
-    }
+    auto derivative() ;/*{
+        auto derivativeNodePtr = pNode->template derivative<variableIndex>();
+        return derivative;
+    }*/
+
     auto getValue() {
         return pNode->getValue();
     }
     std::shared_ptr<ConcreteNodeType> pNode;
 };
 
-
+template<typename NodeTypePara>
+template<unsigned int variableIndex>
+auto NodeWrapper<NodeTypePara, true>::derivative() 
+{
+    auto derivativeNodePtr = pNode->template derivative<variableIndex>();
+    using DerivativeNodeType = typename decltype(derivativeNodePtr)::element_type;
+    return NodeWrapper<DerivativeNodeType>(derivativeNodePtr);
+}
 
 }
 
