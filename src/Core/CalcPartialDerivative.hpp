@@ -194,7 +194,7 @@ template<typename NodeTypePara>
 auto
 _calcPartialDerivative_temp(const std::shared_ptr<NodeTypePara>& dependentVariable, const std::shared_ptr<NodeTypePara>& independentVariable) {
     //std::cout << "in 0" << std::endl;
-    using DerivativeNodeType = IdendityNode<NodeTypePara::index(), typename NodeTypePara::ValueType>;
+    using DerivativeNodeType = IdendityNode<internal::unique_index, typename NodeTypePara::ValueType>;
     return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
 }
 
@@ -210,7 +210,7 @@ auto _calcPartialDerivative_temp(const std::shared_ptr<DependentVariablePara>& d
     }
     else {
         // 因为链式法则，所以ZeroNode应该以dependentVariable的值为种子产生
-        using DerivativeNodeType = ZeroNode<DependentVariablePara::index(), typename DependentVariablePara::ValueType>;
+        using DerivativeNodeType = ZeroNode<internal::unique_index, typename DependentVariablePara::ValueType>;
         return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
     }
 }
@@ -225,7 +225,7 @@ struct ChainRuleExpansion_temp {
         if constexpr (n > 0) {
             /*
             if constexpr (std::is_same<DependentVariablePara, IndependentVariablePara>::value) {
-                using DerivativeNodeType = IdendityNode<NodeTypePara::index(), typename NodeTypePara::ValueType>;
+                using DerivativeNodeType = IdendityNode<internal::unique_index, typename NodeTypePara::ValueType>;
                 return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
             }
             else {
@@ -255,7 +255,7 @@ struct ChainRuleExpansion_temp {
         else {
             /*
              if constexpr (std::is_same<DependentVariablePara, IndependentVariablePara>::value) {
-                using DerivativeNodeType = IdendityNode<NodeTypePara::index(), typename NodeTypePara::ValueType>;
+                using DerivativeNodeType = IdendityNode<internal::unique_index, typename NodeTypePara::ValueType>;
                 return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
             }
             else {

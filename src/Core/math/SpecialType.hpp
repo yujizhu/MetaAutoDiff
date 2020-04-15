@@ -16,6 +16,7 @@ limitations under the License. */
 #define METAAUTODIFF_SPECIALTYPE_HPP
 
 #include<iostream>
+#include"MatrixWrapper.hpp"
 
 namespace MetaAD {
 // 
@@ -110,6 +111,21 @@ class IdendityType_TMP<double> {
     double value;
 };
 
+template<>
+class IdendityType_TMP<ad_MatrixXd> {
+  public:
+    IdendityType_TMP() : value(ad_MatrixXd::Identity(1,1)) {}
+    IdendityType_TMP(const ad_MatrixXd valuePara) : value(ad_MatrixXd::Identity(valuePara.rows(), valuePara.cols())) {} 
+    ad_MatrixXd getValue() {
+        return value;
+    }
+    operator ad_MatrixXd(){
+        return value;
+    }
+  private:
+    ad_MatrixXd value;
+};
+
 template<typename ValueType>
 class ZeroType_TMP;
 
@@ -127,6 +143,23 @@ class ZeroType_TMP<double> {
   private:
     double value;
 };
+
+template<>
+class ZeroType_TMP<ad_MatrixXd> {
+  public:
+    ZeroType_TMP() : value(ad_MatrixXd::Zero(1,1)) {}
+    ZeroType_TMP(const ad_MatrixXd& valuePara) : value(ad_MatrixXd::Zero(valuePara.rows(), valuePara.cols())) {}
+    ad_MatrixXd getValue() {
+        return value;
+    }
+    operator ad_MatrixXd() {
+        return value;
+    }
+  private:
+    ad_MatrixXd value;
+};
+
+
 
 // 这里要不要限定T和ValueType为相同类型？
 template<typename T, typename ValueType>

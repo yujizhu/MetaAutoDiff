@@ -41,6 +41,11 @@ class NodeWrapper<NodeTypePara, true> {
     auto getValue() {
         return pNode->getValue();
     }
+    
+    auto compute() {
+        return pNode->compute();
+    }
+
     std::shared_ptr<ConcreteNodeType> pNode;
 };
 

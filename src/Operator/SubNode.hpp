@@ -168,6 +168,12 @@ class SubNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
 
     ValueType getValue() { return output; }   
     ValueType getValue() const { return output; }   
+
+    ValueType compute() const {
+        ValueType result = std::get<0>(inputs)->compute() - std::get<1>(inputs)->compute();
+        return result;
+    }
+
     template<unsigned int variableIndex>
     auto partialDerivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
@@ -187,15 +193,32 @@ class SubNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
     template<unsigned int variableIndex>
     auto derivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
-        if constexpr (math::is_scalar<typename LeftInputNodeTypePara::ValueType>::value 
-                   && math::is_scalar<typename RightInputNodeTypePara::ValueType>::value) {
+        if constexpr (ad_math::is_scalar<typename LeftInputNodeTypePara::ValueType>::value 
+                   && ad_math::is_scalar<typename RightInputNodeTypePara::ValueType>::value) {
             if constexpr (variableIndex == 0) {
-                using NodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, LeftInputNodeTypePara::index()>;
+                using NodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
                 return std::shared_ptr<NodeType>(new NodeType(1));
             }
             else {
-                using NodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, RightInputNodeTypePara::index()>;
+                using NodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
                 return std::shared_ptr<NodeType>(new NodeType(-1));
+            }
+        }
+        else if constexpr (ad_math::is_matrix<typename LeftInputNodeTypePara::ValueType>::value
+                        && ad_math::is_matrix<typename RightInputNodeTypePara::ValueType>::value) {
+            if constexpr (variableIndex == 0) {
+                auto row = (std::get<0>(inputs)->getValue()).rows();
+                auto col = (std::get<0>(inputs)->getValue()).cols();
+                using DerivativeNodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(LeftInputNodeTypePara::ValueType::Identity(row*col, row*col)));
+                return derivativeNodePtr;
+            }
+            else {
+                auto row = (std::get<1>(inputs)->getValue()).rows();
+                auto col = (std::get<1>(inputs)->getValue()).cols();
+                using DerivativeNodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(-RightInputNodeTypePara::ValueType::Identity(row*col, row*col)));
+                return derivativeNodePtr;
             }
         }
     }

@@ -15,9 +15,11 @@ limitations under the License. */
 #ifndef METAAUTODIFF_VALUETRAIT_HPP
 #define METAAUTODIFF_VALUETRAIT_HPP
 
+#include"MatrixWrapper.hpp"
+
 namespace MetaAD {
 
-namespace math {
+namespace ad_math {
 
 template<typename ValueType>
 struct is_scalar {
@@ -36,6 +38,16 @@ struct is_scalar<float> {
 
 template<>
 struct is_scalar<double> {
+    static constexpr bool value = true;
+};
+
+template<typename>
+struct is_matrix {
+    static constexpr bool value = false;
+};
+
+template<>
+struct is_matrix<ad_MatrixXd> {
     static constexpr bool value = true;
 };
 

@@ -36,6 +36,8 @@ class ValueNode
     operator ValueType() { return output; }
     ValueType getValue() { return output; }
     ValueType getValue() const { return output; }
+    ValueType compute() const { return output; }
+
     static constexpr unsigned int index() {
         return indexPara;
     }

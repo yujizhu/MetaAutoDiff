@@ -12,23 +12,30 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#ifndef METAAUTODIFF_FORWARDDECLARATIONS_HPP
-#define METAAUTODIFF_FORWARDDECLARATIONS_HPP
+#ifndef METAAUTODIFF_KRONECKERPRODUCTTRAIT_HPP
+#define METAAUTODIFF_KRONECKERPRODUCTTRAIT_HPP
+
+#include"ValueTrait.hpp"
 
 namespace MetaAD {
 
-template<typename TemplateSpecialization>
-struct traits;
+namespace ad_math {
 
-template<typename TemplateSpecialization>
-struct traits<const TemplateSpecialization> : traits<TemplateSpecialization> {};
+template<typename LeftValueTypePara, typename RightValurTypePara,
+         bool legal = is_matrix<LeftValueTypePara>::value && is_matrix<LeftValueTypePara>::value>
+struct kronecker_product_trait;
 
-namespace internal {
+template<>
+struct kronecker_product_trait<ad_MatrixXd, ad_MatrixXd, true> {
+    using type = ad_MatrixXd;
+};
 
-constexpr unsigned int unique_index = 200000;
+
+}
 
 }
 
 
-}
+
+
 #endif

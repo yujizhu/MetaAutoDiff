@@ -19,6 +19,7 @@ limitations under the License. */
 //#include"../Core/ValueNode.hpp"
 #include"../Core/SpecialNode.hpp"
 #include"../Core/NodeWrapper.hpp"
+#include"../Core/math/ValueTrait.hpp"
 #include<tuple>
 
 namespace MetaAD {
@@ -226,6 +227,12 @@ class AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
 
     ValueType getValue() { return output; }   
     ValueType getValue() const { return output; }   
+
+    ValueType compute() const{
+        ValueType result = std::get<0>(inputs)->compute() + std::get<1>(inputs)->compute();
+        return result;
+    }
+
     template<unsigned int variableIndex>
     auto partialDerivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
@@ -239,10 +246,36 @@ class AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
     template<unsigned int variableIndex>
     auto derivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
-        using DependentNodeType = typename std::tuple_element<variableIndex, InputNodeTypes>::type::element_type;
-        using DerivativeNodeType = IdendityNode<DependentNodeType::index(), typename DependentNodeType::ValueType>;
-        return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<variableIndex>(inputs)->getValue()));
-        // 用这种方式定义index是为了尽量避免同一个计算图中出现相同的节点。
+        if constexpr (ad_math::is_scalar<typename LeftInputNodeTypePara::ValueType>::value 
+                   && ad_math::is_scalar<typename RightInputNodeTypePara::ValueType>::value) {
+            if constexpr (variableIndex == 0) {
+                using DerivativeNodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(1));
+                return derivativeNodePtr;
+            }
+            else {
+                using DerivativeNodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(1));
+                return derivativeNodePtr;
+            }
+        }
+        else if constexpr (ad_math::is_matrix<typename LeftInputNodeTypePara::ValueType>::value
+                        && ad_math::is_matrix<typename RightInputNodeTypePara::ValueType>::value) {
+            if constexpr (variableIndex == 0) {
+                auto row = (std::get<0>(inputs)->getValue()).rows();
+                auto col = (std::get<0>(inputs)->getValue()).cols();
+                using DerivativeNodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(LeftInputNodeTypePara::ValueType::Identity(row*col, row*col)));
+                return derivativeNodePtr;
+            }
+            else {
+                auto row = (std::get<1>(inputs)->getValue()).rows();
+                auto col = (std::get<1>(inputs)->getValue()).cols();
+                using DerivativeNodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(RightInputNodeTypePara::ValueType::Identity(row*col, row*col)));
+                return derivativeNodePtr;
+            }
+        }
     }
     
     template<unsigned int n>
@@ -285,7 +318,7 @@ typename std::enable_if<(isZeroNode<ConcreteLeftNodeTypePara>::value) && (isZero
                         std::shared_ptr<ConcreteLeftNodeTypePara>>::type
 addImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
     
-    using NodeType = ZeroNode<ConcreteLeftNodeTypePara::index() + ConcreteRightNodeTypePara::index(),
+    using NodeType = ZeroNode<internal::unique_index,
                               typename ConcreteLeftNodeTypePara::ValueType>;
     return leftNode; 
     // 这里我选择直接返回任意一个ZeroNode节点，而不是用leftNode和rightNode的getValue()值生成一个新的ZeroNode节点，因为这两个

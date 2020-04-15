@@ -18,6 +18,8 @@ limitations under the License. */
 #include "../Core/GraphNodeBase.hpp"
 #include"../Core/math/Mul.hpp"
 #include"../Core/math/ValueTrait.hpp"
+#include"KroneckerProductNode.hpp"
+#include"MatTransposeNode.hpp"
 #include<memory>
 #include<tuple>
 
@@ -152,6 +154,12 @@ class MulNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
 
     ValueType getValue() { return output; }   
     ValueType getValue() const { return output; }   
+    
+    ValueType compute() const {
+        ValueType result = std::get<0>(inputs)->compute() * std::get<1>(inputs)->compute();
+        return result;
+    }
+
     template<unsigned int variableIndex>
     auto partialDerivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
@@ -171,8 +179,8 @@ class MulNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
     template<unsigned int variableIndex>
     auto derivative() const {
         static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
-        if constexpr (math::is_scalar<typename LeftInputNodeTypePara::ValueType>::value 
-                   && math::is_scalar<typename RightInputNodeTypePara::ValueType>::value) {
+        if constexpr (ad_math::is_scalar<typename LeftInputNodeTypePara::ValueType>::value 
+                   && ad_math::is_scalar<typename RightInputNodeTypePara::ValueType>::value) {
             if constexpr (variableIndex == 0) {
                 return std::get<1>(inputs);
             }
@@ -180,8 +188,29 @@ class MulNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
                 return std::get<0>(inputs);
             }
         }
+        else if constexpr (ad_math::is_matrix<typename LeftInputNodeTypePara::ValueType>::value
+                        && ad_math::is_matrix<typename RightInputNodeTypePara::ValueType>::value) {
+            if constexpr (variableIndex == 0) {
+                auto row = (std::get<0>(inputs)->getValue()).rows();
+                using TempNodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
+                auto tempNodePtr = std::shared_ptr<TempNodeType>
+                                        (new TempNodeType(RightInputNodeTypePara::ValueType::Identity(row, row)));
+                auto transposeNodePtr = matTransposeImp(std::get<1>(inputs));
+                auto derivativeNodePtr = kroneckerProductImp(tempNodePtr, transposeNodePtr);
+                return derivativeNodePtr;
+            }
+            else {
+                auto col = (std::get<1>(inputs)->getValue()).cols();
+                using TempNodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                auto tempNodePtr = std::shared_ptr<TempNodeType>
+                                        (new TempNodeType(LeftInputNodeTypePara::ValueType::Identity(col, col)));
+                auto derivativeNodePtr = kroneckerProductImp(std::get<0>(inputs), tempNodePtr);
+                return derivativeNodePtr;
+            }
+        }
     }
     
+
 
     template<unsigned int n>
     friend struct ChainRuleExpansion;
