@@ -258,35 +258,35 @@ auto mulImp(const std::shared_ptr<ZeroNode<leftZeroNodeIndex, LeftZeroNodeValueT
     return leftNode;
 }
 
-template<typename ConcreteRightNodeTypePara, typename IdendityNodeValueType, unsigned int idendityNodeIndex>
-auto mulImp(const std::shared_ptr<IdendityNode<idendityNodeIndex, IdendityNodeValueType>>& leftNode,
+template<typename ConcreteRightNodeTypePara, typename IdentityNodeValueType, unsigned int identityNodeIndex>
+auto mulImp(const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& leftNode,
             const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
     return rightNode;
 }
 
-template<typename ConcreteLeftNodeTypePara, typename IdendityNodeValueType, unsigned int idendityNodeIndex>
+template<typename ConcreteLeftNodeTypePara, typename IdentityNodeValueType, unsigned int identityNodeIndex>
 auto mulImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode,
-            const std::shared_ptr<IdendityNode<idendityNodeIndex, IdendityNodeValueType>>& rightNode) {
+            const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& rightNode) {
     return leftNode;
 }
 
-template<typename LeftIdendityNodeValueType, unsigned int leftIdendityNodeIndex,
-         typename RightIdendityNodeValueType, unsigned int rightIdendityNodeIndex>
-auto mulImp(const std::shared_ptr<IdendityNode<leftIdendityNodeIndex, LeftIdendityNodeValueType>>& leftNode,
-            const std::shared_ptr<IdendityNode<rightIdendityNodeIndex, RightIdendityNodeValueType>>& rightNode) {
+template<typename LeftIdentityNodeValueType, unsigned int leftIdentityNodeIndex,
+         typename RightIdentityNodeValueType, unsigned int rightIdentityNodeIndex>
+auto mulImp(const std::shared_ptr<IdentityNode<leftIdentityNodeIndex, LeftIdentityNodeValueType>>& leftNode,
+            const std::shared_ptr<IdentityNode<rightIdentityNodeIndex, RightIdentityNodeValueType>>& rightNode) {
     return rightNode;
 }
 
 template<typename ZeroNodeValueType, unsigned int zeroNodeIndex,
-         typename IdendityNodeValueType, unsigned int idendityNodeIndex>
+         typename IdentityNodeValueType, unsigned int identityNodeIndex>
 auto mulImp(const std::shared_ptr<ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& leftNode,
-            const std::shared_ptr<IdendityNode<idendityNodeIndex, IdendityNodeValueType>>& rightNode) {
+            const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& rightNode) {
     return leftNode;
 }
 
-template<typename IdendityNodeValueType, unsigned int idendityNodeIndex,
+template<typename IdentityNodeValueType, unsigned int identityNodeIndex,
          typename ZeroNodeValueType, unsigned int zeroNodeIndex>
-auto mulImp(const std::shared_ptr<IdendityNode<idendityNodeIndex, IdendityNodeValueType>>& leftNode,
+auto mulImp(const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& leftNode,
             const std::shared_ptr<ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& rightNode) {
     return rightNode;
 }

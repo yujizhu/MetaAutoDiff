@@ -92,15 +92,15 @@ std::ostream & operator<<(std::ostream & a, IdendityType b) {
 
 
 
-// IdendityType does't support operator+.
+// IdentityType does't support operator+.
 template<typename ValueType>
-class IdendityType_TMP;
+class IdentityType_TMP;
 
 template<>
-class IdendityType_TMP<double> {
+class IdentityType_TMP<double> {
   public:
-    IdendityType_TMP() : value(1) {}
-    IdendityType_TMP(double valuePara) : value(1) {} 
+    IdentityType_TMP() : value(1) {}
+    IdentityType_TMP(double valuePara) : value(1) {} 
     double getValue() {
         return value;
     }
@@ -112,10 +112,10 @@ class IdendityType_TMP<double> {
 };
 
 template<>
-class IdendityType_TMP<ad_MatrixXd> {
+class IdentityType_TMP<ad_MatrixXd> {
   public:
-    IdendityType_TMP() : value(ad_MatrixXd::Identity(1,1)) {}
-    IdendityType_TMP(const ad_MatrixXd valuePara) : value(ad_MatrixXd::Identity(valuePara.rows(), valuePara.cols())) {} 
+    IdentityType_TMP() : value(ad_MatrixXd::Identity(1,1)) {}
+    IdentityType_TMP(const ad_MatrixXd valuePara) : value(ad_MatrixXd::Identity(valuePara.rows(), valuePara.cols())) {} 
     ad_MatrixXd getValue() {
         return value;
     }
@@ -193,18 +193,18 @@ ZeroType_TMP<ValueType> operator*(const ZeroType_TMP<ValueType>& leftValue, cons
 }
 
 template<typename T>
-T operator*(const IdendityType_TMP<T>& leftValue, const T& rightValue) {
+T operator*(const IdentityType_TMP<T>& leftValue, const T& rightValue) {
     return rightValue;
 }
 
 template<typename T>
-T operator*(const T& leftValue, const IdendityType_TMP<T>& rightValue) {
+T operator*(const T& leftValue, const IdentityType_TMP<T>& rightValue) {
     return leftValue;
 }
 
 template<typename ValueType>
-IdendityType operator*(const IdendityType_TMP<ValueType>& leftValue, const IdendityType_TMP<ValueType>& rightValue) {
-    return IdendityType_TMP<ValueType>(leftValue.getValue() * rightValue.getValue());
+IdendityType operator*(const IdentityType_TMP<ValueType>& leftValue, const IdentityType_TMP<ValueType>& rightValue) {
+    return IdentityType_TMP<ValueType>(leftValue.getValue() * rightValue.getValue());
 }
 
 /*

@@ -21,19 +21,19 @@ limitations under the License. */
 namespace MetaAD {
 
 template<unsigned int indexPara, typename ValueType>
-using IdendityNode = ValueNode<NullTypeNode, IdendityType_TMP<ValueType>, indexPara>;
+using IdentityNode = ValueNode<NullTypeNode, IdentityType_TMP<ValueType>, indexPara>;
 
 template<unsigned int indexPara, typename ValueType>
 using ZeroNode = ValueNode<NullTypeNode, ZeroType_TMP<ValueType>, indexPara>;
 
-// If the NodeType is not a node, but a arbitary type, what should isIndedityNode::value be, ture or false or get an error.
+// If the NodeType is not a node, but a arbitary type, what should isIdentityNode::value be, ture or false or get an error.
 template<typename NodeType>
-struct isIdendityNode {
+struct isIdentityNode {
     static constexpr bool value = false;
 };
 
 template<unsigned int indexPara, typename ValueType>
-struct isIdendityNode<ValueNode<NullTypeNode, IdendityType_TMP<ValueType>, indexPara>> {
+struct isIdentityNode<ValueNode<NullTypeNode, IdentityType_TMP<ValueType>, indexPara>> {
     static constexpr bool value = true;
 };
 
