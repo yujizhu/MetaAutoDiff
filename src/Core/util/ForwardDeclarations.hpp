@@ -25,7 +25,7 @@ struct traits<const TemplateSpecialization> : traits<TemplateSpecialization> {};
 
 namespace internal {
 
-constexpr unsigned int unique_index = 200000;
+constexpr unsigned int unique_index = 1000;
 
 }
 

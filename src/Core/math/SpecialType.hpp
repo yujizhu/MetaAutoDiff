@@ -32,6 +32,9 @@ class IdentityType<double> {
     double getValue() {
         return value;
     }
+    double getValue() const {
+        return value;
+    }
     operator double(){
         return 1;
     }
@@ -45,6 +48,9 @@ class IdentityType<ad_MatrixXd> {
     IdentityType() : value(ad_MatrixXd::Identity(1,1)) {}
     IdentityType(const ad_MatrixXd& valuePara) : value(ad_MatrixXd::Identity(valuePara.rows(), valuePara.cols())) {} 
     ad_MatrixXd getValue() {
+        return value;
+    }
+    ad_MatrixXd getValue() const {
         return value;
     }
     operator ad_MatrixXd(){
@@ -65,7 +71,7 @@ class ZeroType<double> {
     double getValue() {
         return value;
     }
-    operator double() {
+    operator double() const {
         return 0;
     }
   private:

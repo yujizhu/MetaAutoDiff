@@ -93,12 +93,16 @@ class AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
         if constexpr (ad_math::is_scalar<typename LeftInputNodeTypePara::ValueType>::value 
                    && ad_math::is_scalar<typename RightInputNodeTypePara::ValueType>::value) {
             if constexpr (variableIndex == 0) {
-                using DerivativeNodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                // 这里用IdendityNode来实现，为了链式法则中index不要累加的过高
+                // 这里有个问题，按道理来说IdendityNode是用ValueNode实现的，因此这里原来的DerivativeNodeType与现在的应该是等价的，
+                // 但是没有触发IdendityNode版本的mulImp()重载函数,这是为什么？
+                // 这两个类型其实是不一样的，因为原来ValueNode是以double为ValueType的，IdentityNode是以IdentityType为数据类型的。
+                using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename LeftInputNodeTypePara::ValueType>;//ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
                 auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(1));
                 return derivativeNodePtr;
             }
             else {
-                using DerivativeNodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
+                using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename RightInputNodeTypePara::ValueType>;//ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
                 auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(1));
                 return derivativeNodePtr;
             }
@@ -108,14 +112,17 @@ class AddNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
             if constexpr (variableIndex == 0) {
                 auto row = (std::get<0>(inputs)->getValue()).rows();
                 auto col = (std::get<0>(inputs)->getValue()).cols();
-                using DerivativeNodeType = ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                // 这里还是得用这种方式，如果链式法则过程中出现了连续两个IdentityNode想乘，这个框架会返回左操作数，因此有可能会丢失维度，例如
+                // matrix1 + matrix2 ，使用连式法则时，会返回与matrix1行列相同(m,n)的单位阵，实际上应该是(mn, mn)。
+                // 这里就出现了问题，对矩阵自己对自己求导，维度会出现问题。
+                using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename LeftInputNodeTypePara::ValueType>;;//ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
                 auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(LeftInputNodeTypePara::ValueType::Identity(row*col, row*col)));
                 return derivativeNodePtr;
             }
             else {
                 auto row = (std::get<1>(inputs)->getValue()).rows();
                 auto col = (std::get<1>(inputs)->getValue()).cols();
-                using DerivativeNodeType = ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
+                using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename RightInputNodeTypePara::ValueType>;//ValueNode<NullTypeNode, typename RightInputNodeTypePara::ValueType, internal::unique_index>;
                 auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(RightInputNodeTypePara::ValueType::Identity(row*col, row*col)));
                 return derivativeNodePtr;
             }

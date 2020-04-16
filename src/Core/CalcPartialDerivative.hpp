@@ -102,8 +102,21 @@ template<typename NodeTypePara>
 auto
 _calcPartialDerivative(const std::shared_ptr<NodeTypePara>& dependentVariable, const std::shared_ptr<NodeTypePara>& independentVariable) {
     //std::cout << "in 0" << std::endl;
-    using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename NodeTypePara::ValueType>;
-    return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
+    // 这里要保证求导的结果正确，特别是矩阵情况下，自己对自己求导维度为(mn, mn)，原来的实现返回的矩阵维度为(m,n)
+    if constexpr (ad_math::is_scalar<typename NodeTypePara::ValueType>::value) {
+        using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename NodeTypePara::ValueType>;
+        return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(1));
+    }
+    else if constexpr (ad_math::is_matrix<typename NodeTypePara::ValueType>::value) {
+        auto temp = dependentVariable->compute();
+        auto row = temp.rows();
+        auto col = temp.cols();
+        using DerivativeNodeType = internal::IdentityNode<internal::unique_index, typename NodeTypePara::ValueType>;
+        auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(NodeTypePara::ValueType::Identity(row*col, row*col)));
+        return derivativeNodePtr;
+    }
+    
+    // 这里compute用getValue应该也行，因为它其实不参与运算，因此什么值都可以
 }
 
 // For other situation
@@ -118,9 +131,19 @@ auto _calcPartialDerivative(const std::shared_ptr<DependentVariablePara>& depend
     }
     else {
         // 因为链式法则，所以ZeroNode应该以dependentVariable的值为种子产生
+        // 这里如果dependentVariable是ZeroNode类型，就会报错，因为它的DependentVariablePara::ValueType是ZeroType，
+        // 这会导致下面产生的ZeroNode的ValueType的类型为ZeroType<ZeroType<ValueType>>(ValueType为具体类型如double或者ad_MatrixXd),,
+        // dependentVariable->compute()的返回值一般为0或者零矩阵，因此无法根据0构造ZeroType<ZeroType<ValueType>>对象，因此需要加一个
+        // 针对ZeroType的重载函数
         using DerivativeNodeType = internal::ZeroNode<internal::unique_index, typename DependentVariablePara::ValueType>;
-        return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->getValue()));
+        return std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(dependentVariable->compute()));
+        // 这里compute用getValue应该也行，因为它其实不参与运算，因此什么值都可以
     }
+}
+
+template<unsigned int zeroNodeIndex, typename ZeroNodeType, typename IndependentVariablePara>
+auto _calcPartialDerivative(const std::shared_ptr<internal::ZeroNode<zeroNodeIndex, ZeroNodeType>>& dependentVariable, const std::shared_ptr<IndependentVariablePara>& independentVariable) {
+    return dependentVariable;
 }
 
 template<unsigned int n>
@@ -193,9 +216,18 @@ struct ChainRuleExpansion {
 
 template<unsigned int order, typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
 auto calcPartialDerivative(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode, const NodeWrapper<ConcreteRightNodeTypePara>& rightNode) {
-    auto derivativeNodePtr = _calcPartialDerivative(leftNode.pNode, rightNode.pNode);
-    using DerivativeNodeType = typename decltype(derivativeNodePtr)::element_type;
-    return NodeWrapper<DerivativeNodeType>(derivativeNodePtr);
+    static_assert(order > 0, "The order of partial derivative must be greater than 0");
+    if constexpr (order == 1) {
+        auto derivativeNodePtr = _calcPartialDerivative(leftNode.pNode, rightNode.pNode);
+        using DerivativeNodeType = typename decltype(derivativeNodePtr)::element_type;
+        return NodeWrapper<DerivativeNodeType>(derivativeNodePtr);
+    }
+    else {
+        auto lowOrderDerivative = calcPartialDerivative<order - 1>(leftNode, rightNode);
+        auto currentOrderDerivative = calcPartialDerivative<1>(lowOrderDerivative, rightNode);
+        return currentOrderDerivative;
+    }
+    
 }
 
 }

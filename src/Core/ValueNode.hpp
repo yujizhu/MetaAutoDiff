@@ -16,6 +16,7 @@ limitations under the License. */
 #define METAAUTODIFF_VALUENODE_HPP
 
 #include"GraphNodeBase.hpp"
+#include"math/ValueTrait.hpp"
 #include<memory>
 #include<Tuple>
 
@@ -33,14 +34,36 @@ class ValueNode
     ValueNode(std::shared_ptr<InputNodeTypePara> inputNode) : Base(), InputNodeTypes(inputNode), output(inputNode->getValue()) {} 
     ValueNode(const ValueType& valuePara) : Base(), output(valuePara) {} 
     ValueNode() = default;
-    operator ValueType() { return output; }
+    operator ValueType() const { return output; }
     ValueType getValue() { return output; }
     ValueType getValue() const { return output; }
     ValueType compute() const { return output; }
-
+    
     static constexpr unsigned int index() {
         return indexPara;
     }
+    //加这个是为了实现_calcPartialDerivative中，两节点相同情况下，矩阵的特殊情况，即matrix1 + matrix2情况下求_calcPartialDerivativ(matrix1, matrix1)的问题
+    template<unsigned int variableIndex>
+    auto derivative() const {
+        static_assert((variableIndex==0), "The partial derivative variable index must be 0.");
+        if constexpr (ad_math::is_scalar<ValueType>::value) {
+                using DerivativeNodeType = internal::IdentityNode<internal::unique_index, ValueType>;//ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(1));
+                return derivativeNodePtr;
+        }
+        else if constexpr (ad_math::is_matrix<ValueType>::value) {
+            if constexpr (variableIndex == 0) {
+                auto row = output.rows();
+                auto col = output.cols();
+                using DerivativeNodeType = internal::IdentityNode<internal::unique_index, ValueType>;//ValueNode<NullTypeNode, typename LeftInputNodeTypePara::ValueType, internal::unique_index>;
+                auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(ValueType::Identity(row*col, row*col)));
+                return derivativeNodePtr;
+            }
+        }
+    }
+    template<unsigned int n>
+    friend struct ChainRuleExpansion;
+
   private:
     ValueType output;
 };

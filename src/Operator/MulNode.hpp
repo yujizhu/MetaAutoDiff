@@ -17,6 +17,7 @@ limitations under the License. */
 
 #include "../Core/GraphNodeBase.hpp"
 #include"../Core/math/Mul.hpp"
+#include"../Core/ValueNode.hpp"
 #include"../Core/math/ValueTrait.hpp"
 #include"KroneckerProductNode.hpp"
 #include"MatTransposeNode.hpp"
