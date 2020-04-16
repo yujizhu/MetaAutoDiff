@@ -82,8 +82,6 @@ class SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
     template<unsigned int n>
     friend struct ChainRuleExpansion;
 
-    template<unsigned int n>
-    friend struct ChainRuleExpansion_temp;
   private:
     InputNodeTypes inputs;
     ValueType output;

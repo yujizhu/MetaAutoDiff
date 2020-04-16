@@ -70,7 +70,7 @@ class KroneckerProductNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, ind
     }
 
     template<unsigned int n>
-    friend struct ChainRuleExpansion_temp;
+    friend struct ChainRuleExpansion;
 
   private:
     InputNodeTypes inputs;
@@ -101,7 +101,6 @@ auto kroneckerProduct(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode,
     using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
     return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
-
 
 }
 

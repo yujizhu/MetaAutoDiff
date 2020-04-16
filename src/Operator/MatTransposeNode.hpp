@@ -79,8 +79,6 @@ class MatTransposeNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPar
     template<unsigned int n>
     friend struct ChainRuleExpansion;
 
-    template<unsigned int n>
-    friend struct ChainRuleExpansion_temp;
   private:
     InputNodeTypes inputs;
     ValueType output;

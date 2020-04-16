@@ -19,88 +19,16 @@ limitations under the License. */
 #include"MatrixWrapper.hpp"
 
 namespace MetaAD {
-// 
-class IdendityType {
-  public:
-    IdendityType() = default;
-    static IdendityType creat() { return IdendityType{}; } 
-};
-
-class ZeroType {
-  public:
-    ZeroType() = default;
-    static ZeroType creat() { return ZeroType{}; }
-};
-
-template<typename T>
-T operator+(const ZeroType& leftValue, const T& rightValue) {
-    return rightValue;
-}
-
-template<typename T>
-T operator+(const T& leftValue, const ZeroType& rightValue) {
-    return leftValue;
-}
-
-ZeroType operator+(const ZeroType& leftValue, const ZeroType& rightValue) {
-    return ZeroType::creat();
-}
-
-template<typename T>
-ZeroType operator*(const ZeroType& leftValue, const T& rightValue) {
-    return ZeroType::creat();
-}
-
-template<typename T>
-ZeroType operator*(const T& leftValue, const ZeroType& rightValue) {
-    return ZeroType::creat();
-}
-
-ZeroType operator*(const ZeroType& leftValue, const ZeroType& rightValue) {
-    return ZeroType::creat();
-}
-
-template<typename T>
-T operator*(const IdendityType& leftValue, const T& rightValue) {
-    return rightValue;
-}
-
-template<typename T>
-T operator*(const T& leftValue, const IdendityType& rightValue) {
-    return leftValue;
-}
-
-IdendityType operator*(const IdendityType& leftValue, const IdendityType& rightValue) {
-    return IdendityType::creat();
-}
-
-
-std::ostream & operator<<(std::ostream & a, ZeroType b) {
-    std::cout << "Zero" << std::endl;
-    return a;
-}
-
-std::ostream & operator<<(std::ostream & a, IdendityType b) {
-    std::cout << "Idendity" << std::endl;
-    return a;
-}
-
-
-
-
-
-
-
 
 // IdentityType does't support operator+.
 template<typename ValueType>
-class IdentityType_TMP;
+class IdentityType;
 
 template<>
-class IdentityType_TMP<double> {
+class IdentityType<double> {
   public:
-    IdentityType_TMP() : value(1) {}
-    IdentityType_TMP(double valuePara) : value(1) {} 
+    IdentityType() : value(1) {}
+    IdentityType(double valuePara) : value(1) {} 
     double getValue() {
         return value;
     }
@@ -112,10 +40,10 @@ class IdentityType_TMP<double> {
 };
 
 template<>
-class IdentityType_TMP<ad_MatrixXd> {
+class IdentityType<ad_MatrixXd> {
   public:
-    IdentityType_TMP() : value(ad_MatrixXd::Identity(1,1)) {}
-    IdentityType_TMP(const ad_MatrixXd valuePara) : value(ad_MatrixXd::Identity(valuePara.rows(), valuePara.cols())) {} 
+    IdentityType() : value(ad_MatrixXd::Identity(1,1)) {}
+    IdentityType(const ad_MatrixXd& valuePara) : value(ad_MatrixXd::Identity(valuePara.rows(), valuePara.cols())) {} 
     ad_MatrixXd getValue() {
         return value;
     }
@@ -127,13 +55,13 @@ class IdentityType_TMP<ad_MatrixXd> {
 };
 
 template<typename ValueType>
-class ZeroType_TMP;
+class ZeroType;
 
 template<>
-class ZeroType_TMP<double> {
+class ZeroType<double> {
   public:
-    ZeroType_TMP() : value(0) {}
-    ZeroType_TMP(double valuePara) : value(0) {}
+    ZeroType() : value(0) {}
+    ZeroType(double valuePara) : value(0) {}
     double getValue() {
         return value;
     }
@@ -145,10 +73,10 @@ class ZeroType_TMP<double> {
 };
 
 template<>
-class ZeroType_TMP<ad_MatrixXd> {
+class ZeroType<ad_MatrixXd> {
   public:
-    ZeroType_TMP() : value(ad_MatrixXd::Zero(1,1)) {}
-    ZeroType_TMP(const ad_MatrixXd& valuePara) : value(ad_MatrixXd::Zero(valuePara.rows(), valuePara.cols())) {}
+    ZeroType() : value(ad_MatrixXd::Zero(1,1)) {}
+    ZeroType(const ad_MatrixXd& valuePara) : value(ad_MatrixXd::Zero(valuePara.rows(), valuePara.cols())) {}
     ad_MatrixXd getValue() {
         return value;
     }
@@ -159,52 +87,50 @@ class ZeroType_TMP<ad_MatrixXd> {
     ad_MatrixXd value;
 };
 
-
-
 // 这里要不要限定T和ValueType为相同类型？
 template<typename T, typename ValueType>
-T operator+(const ZeroType_TMP<ValueType>& leftValue, const T& rightValue) {
+T operator+(const ZeroType<ValueType>& leftValue, const T& rightValue) {
     return rightValue;
 }
 
 template<typename T, typename ValueType>
-T operator+(const T& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
+T operator+(const T& leftValue, const ZeroType<ValueType>& rightValue) {
     return leftValue;
 }
 
 template<typename ValueType>
-ZeroType_TMP<ValueType> operator+(const ZeroType_TMP<ValueType>& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
-    return ZeroType_TMP<ValueType>();
+ZeroType<ValueType> operator+(const ZeroType<ValueType>& leftValue, const ZeroType<ValueType>& rightValue) {
+    return ZeroType<ValueType>();
 }
 
 template<typename T, typename ValueType>
-ZeroType_TMP<ValueType> operator*(const ZeroType_TMP<ValueType>& leftValue, const T& rightValue) {
-    return ZeroType_TMP<ValueType>();
+ZeroType<ValueType> operator*(const ZeroType<ValueType>& leftValue, const T& rightValue) {
+    return ZeroType<ValueType>();
 }
 
 template<typename T, typename ValueType>
-ZeroType_TMP<ValueType> operator*(const T& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
-    return ZeroType_TMP<ValueType>();
+ZeroType<ValueType> operator*(const T& leftValue, const ZeroType<ValueType>& rightValue) {
+    return ZeroType<ValueType>();
 }
 
 template<typename ValueType>
-ZeroType_TMP<ValueType> operator*(const ZeroType_TMP<ValueType>& leftValue, const ZeroType_TMP<ValueType>& rightValue) {
-    return ZeroType_TMP<ValueType>(leftValue.getValue() * rightValue.getValue());
+ZeroType<ValueType> operator*(const ZeroType<ValueType>& leftValue, const ZeroType<ValueType>& rightValue) {
+    return ZeroType<ValueType>(leftValue.getValue() * rightValue.getValue());
 }
 
 template<typename T>
-T operator*(const IdentityType_TMP<T>& leftValue, const T& rightValue) {
+T operator*(const IdentityType<T>& leftValue, const T& rightValue) {
     return rightValue;
 }
 
 template<typename T>
-T operator*(const T& leftValue, const IdentityType_TMP<T>& rightValue) {
+T operator*(const T& leftValue, const IdentityType<T>& rightValue) {
     return leftValue;
 }
 
 template<typename ValueType>
-IdendityType operator*(const IdentityType_TMP<ValueType>& leftValue, const IdentityType_TMP<ValueType>& rightValue) {
-    return IdentityType_TMP<ValueType>(leftValue.getValue() * rightValue.getValue());
+auto operator*(const IdentityType<ValueType>& leftValue, const IdentityType<ValueType>& rightValue) {
+    return IdentityType<ValueType>(leftValue.getValue() * rightValue.getValue());
 }
 
 /*

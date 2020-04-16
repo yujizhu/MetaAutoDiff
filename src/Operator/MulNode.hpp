@@ -25,7 +25,6 @@ limitations under the License. */
 
 namespace MetaAD {
 
-
 template<typename LeftNodeTypePara, typename RightNodeTypePara>
 struct MulNodeTrait {
     using LeftNodeValueType = typename LeftNodeTypePara::ValueType;
@@ -40,87 +39,6 @@ struct MulPolicyDefault {
     using type = typename ad_math::mul_policy<LeftNodeValueType, RightNodeValueType>;
 };
 
-template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
-         typename ValueTypePara = typename MulNodeTrait<LeftInputNodeTypePara, RightInputNodeTypePara>::type, 
-         typename PolicyPara = typename MulPolicyDefault<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
-         bool legalPara = isNodeType<LeftInputNodeTypePara>::value && isNodeType<RightInputNodeTypePara>::value>
-class MulNode;
-
-template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara, 
-         typename ValueTypePara, typename PolicyPara>
-class MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
-  : public GraphNodeBase<MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
-  public:
-    using Base = GraphNodeBase<MulNode>;
-    using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
-    using ValueType = ValueTypePara;
-    using DerivativePolicy = PolicyPara;
-    using ConcreteNodeType = MulNode;
-    static constexpr unsigned int index() {
-        return indexPara;
-    }
-
-    MulNode(LeftInputNodeTypePara* inputNodeL, RightInputNodeTypePara* inputNodeR)
-      : Base(), inputs(std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>(inputNodeL, inputNodeR)) {
-        output = inputNodeL->getValue() * inputNodeR->getValue();
-    }
-
-    MulNode(const MulNode& rValue) = default;
-    //MulNode(const MulNode&& lvalue) = default;    //不确定要不要加移动构造函数，这要求所有的成员都具有移动构造函数
-    
-    // 拷贝赋值运算符，赋值运算符是否要加？如果保证计算图中的所有节点类型都不同的话，就不需要拷贝赋值操作了。
-    MulNode& operator=(const MulNode& rValue) = default;
-
-    ValueType getValue() { return output; }   
-    ValueType getValue() const { return output; }   
-    template<unsigned int variableIndex>
-    auto partialDerivative() const {
-        static_assert((variableIndex==0) || (variableIndex==1), "The partial derivative variable index must be 0 or 1.");
-        auto derivativeValue =  DerivativePolicy::template derivative<variableIndex>(std::get<0>(inputs)->getValue(),
-                                                                                     std::get<1>(inputs)->getValue(),
-                                                                                     output);
-        return derivativeValue;
-        /*
-        if constexpr (variableIndex == 0)
-            return GradientEdge<MulNode, LeftInputNodeTypePara>(this, std::get<0>(inputs), derivativeValue);
-        else if constexpr (variableIndex == 1)
-            return GradientEdge<MulNode, RightInputNodeTypePara>(this, std::get<1>(inputs), derivativeValue);
-        */
-    }
-
-    template<unsigned int n>
-    friend struct ChainRuleExpansion;
-  private:
-    InputNodeTypes inputs;
-    ValueType output;
-};
-
-template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
-         typename ValueTypePara, typename PolicyPara, bool legalPara>
-struct traits<MulNode<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, ValueTypePara,
-                      PolicyPara, legalPara>> {
-    using InputNodeTypes = std::tuple<LeftInputNodeTypePara*, RightInputNodeTypePara*>;
-    using ValueType = ValueTypePara;
-    using Policy = PolicyPara;
-    static constexpr unsigned int index = indexPara;
-};
-
-template<unsigned int indexPara, typename ConcreteLeftNodeTypePara, typename ConcreteRightNodeTypePara>
-auto mul(GraphNodeBase<ConcreteLeftNodeTypePara>& leftNode, 
-         GraphNodeBase<ConcreteRightNodeTypePara>& rightNode) {
-
-    // 这里必须使用getPtrFromBase成员来返回指向Derived类型的指针，因为指针类型无法实现从基类到派生类的自动转换，而
-    // 该构造函数的形参类型都是指向派生类的指针，因此需要在GraphNodeBase中加上getPtrFromBase成员来返回指向派生类类型的指针
-    return MulNode<ConcreteLeftNodeTypePara, ConcreteRightNodeTypePara, indexPara>(leftNode.getDerivedPtr(),
-                                                                        rightNode.getDerivedPtr());
-
-}
-
-
-
-
-
-// new implement
 template<typename LeftInputNodeTypePara, typename RightInputNodeTypePara, unsigned int indexPara,
          typename ValueTypePara = typename MulNodeTrait<LeftInputNodeTypePara, RightInputNodeTypePara>::type, 
          typename PolicyPara = typename MulPolicyDefault<LeftInputNodeTypePara, RightInputNodeTypePara>::type,
@@ -210,13 +128,9 @@ class MulNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, Value
         }
     }
     
-
-
     template<unsigned int n>
     friend struct ChainRuleExpansion;
 
-    template<unsigned int n>
-    friend struct ChainRuleExpansion_temp;
   private:
     InputNodeTypes inputs;
     ValueType output;
@@ -240,54 +154,54 @@ auto mulImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode, const std
 }
 
 template<typename ConcreteRightNodeTypePara, typename ZeroNodeValueType, unsigned int zeroNodeIndex>
-auto mulImp(const std::shared_ptr<ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& leftNode,
+auto mulImp(const std::shared_ptr<internal::ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& leftNode,
             const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
     return leftNode;
 }
 
 template<typename ConcreteLeftNodeTypePara, typename ZeroNodeValueType, unsigned int zeroNodeIndex>
 auto mulImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode,
-            const std::shared_ptr<ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& rightNode) {
+            const std::shared_ptr<internal::ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& rightNode) {
     return rightNode;
 }
 
 template<typename LeftZeroNodeValueType, unsigned int leftZeroNodeIndex,
          typename RightZeroNodeValueType, unsigned int rightZeroNodeIndex>
-auto mulImp(const std::shared_ptr<ZeroNode<leftZeroNodeIndex, LeftZeroNodeValueType>>& leftNode,
-            const std::shared_ptr<ZeroNode<rightZeroNodeIndex, RightZeroNodeValueType>>& rightNode) {
+auto mulImp(const std::shared_ptr<internal::ZeroNode<leftZeroNodeIndex, LeftZeroNodeValueType>>& leftNode,
+            const std::shared_ptr<internal::ZeroNode<rightZeroNodeIndex, RightZeroNodeValueType>>& rightNode) {
     return leftNode;
 }
 
 template<typename ConcreteRightNodeTypePara, typename IdentityNodeValueType, unsigned int identityNodeIndex>
-auto mulImp(const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& leftNode,
+auto mulImp(const std::shared_ptr<internal::IdentityNode<identityNodeIndex, IdentityNodeValueType>>& leftNode,
             const std::shared_ptr<ConcreteRightNodeTypePara>& rightNode) {
     return rightNode;
 }
 
 template<typename ConcreteLeftNodeTypePara, typename IdentityNodeValueType, unsigned int identityNodeIndex>
 auto mulImp(const std::shared_ptr<ConcreteLeftNodeTypePara>& leftNode,
-            const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& rightNode) {
+            const std::shared_ptr<internal::IdentityNode<identityNodeIndex, IdentityNodeValueType>>& rightNode) {
     return leftNode;
 }
 
 template<typename LeftIdentityNodeValueType, unsigned int leftIdentityNodeIndex,
          typename RightIdentityNodeValueType, unsigned int rightIdentityNodeIndex>
-auto mulImp(const std::shared_ptr<IdentityNode<leftIdentityNodeIndex, LeftIdentityNodeValueType>>& leftNode,
-            const std::shared_ptr<IdentityNode<rightIdentityNodeIndex, RightIdentityNodeValueType>>& rightNode) {
+auto mulImp(const std::shared_ptr<internal::IdentityNode<leftIdentityNodeIndex, LeftIdentityNodeValueType>>& leftNode,
+            const std::shared_ptr<internal::IdentityNode<rightIdentityNodeIndex, RightIdentityNodeValueType>>& rightNode) {
     return rightNode;
 }
 
 template<typename ZeroNodeValueType, unsigned int zeroNodeIndex,
          typename IdentityNodeValueType, unsigned int identityNodeIndex>
-auto mulImp(const std::shared_ptr<ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& leftNode,
-            const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& rightNode) {
+auto mulImp(const std::shared_ptr<internal::ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& leftNode,
+            const std::shared_ptr<internal::IdentityNode<identityNodeIndex, IdentityNodeValueType>>& rightNode) {
     return leftNode;
 }
 
 template<typename IdentityNodeValueType, unsigned int identityNodeIndex,
          typename ZeroNodeValueType, unsigned int zeroNodeIndex>
-auto mulImp(const std::shared_ptr<IdentityNode<identityNodeIndex, IdentityNodeValueType>>& leftNode,
-            const std::shared_ptr<ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& rightNode) {
+auto mulImp(const std::shared_ptr<internal::IdentityNode<identityNodeIndex, IdentityNodeValueType>>& leftNode,
+            const std::shared_ptr<internal::ZeroNode<zeroNodeIndex, ZeroNodeValueType>>& rightNode) {
     return rightNode;
 }
 
@@ -299,7 +213,6 @@ auto operator*(const NodeWrapper<ConcreteLeftNodeTypePara>& leftNode,
     using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
     return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
-
 
 }
 #endif
