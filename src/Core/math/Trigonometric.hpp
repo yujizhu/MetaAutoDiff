@@ -22,6 +22,7 @@ limitations under the License. */
 namespace MetaAD {
 
 namespace ad_math {
+    
     template<typename InputValueTypePara>
     struct sin_policy;
 
