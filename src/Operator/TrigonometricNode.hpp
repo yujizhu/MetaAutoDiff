@@ -18,6 +18,9 @@ limitations under the License. */
 #include"../Core/math/Trigonometric.hpp"
 #include"../Core/GraphNodeBase.hpp"
 #include"../Core/NodeWrapper.hpp"
+#include"../Core/math/ValueTrait.hpp"
+#include"VectorizationNode.hpp"
+#include"MatDiagonalNode.hpp"
 #include<memory>
 #include<tuple>
 
@@ -203,18 +206,41 @@ template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypeP
 template<unsigned int variableIndex>
 auto SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>::derivative() const {
     static_assert(variableIndex == 0, "The partial derivative variable index must be 0.");
-    using DerivativeNodeType = CosNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
-    auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
-    return derivativeNodePtr;
+    if constexpr (ad_math::is_scalar<typename InputNodeTypePara::ValueType>::value) {
+        using DerivativeNodeType = CosNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
+        auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
+        return derivativeNodePtr;
+    }
+    else if constexpr (ad_math::is_matrix<typename InputNodeTypePara::ValueType>::value) {
+        // 这里必须直接定义类型，不能用cosImp运算获得，避免多次求导过程中计算图中出现相同的类型
+        using TempNodeType = CosNodeImp<InputNodeTypePara, indexPara + 1>;
+        auto tempNodePtr = std::shared_ptr<TempNodeType>(new TempNodeType(std::get<0>(inputs)));
+        auto vecTempNodePtr = rowVectorizationImp(tempNodePtr);
+        auto diagTempNodePtr = matDiagonalImp(vecTempNodePtr);
+        return diagTempNodePtr;
+
+    }
+    
 }
 
 template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypePara, typename PolicyPara>
 template<unsigned int variableIndex>
 auto CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>::derivative() const {
     static_assert(variableIndex == 0, "The partial derivative variable index must be 0.");
-    using DerivativeNodeType = SinNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
-    auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
-    return derivativeNodePtr;
+    if constexpr (ad_math::is_scalar<typename InputNodeTypePara::ValueType>::value) {
+        using DerivativeNodeType = SinNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
+        auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
+        return derivativeNodePtr;
+    }
+    else if constexpr (ad_math::is_matrix<typename InputNodeTypePara::ValueType>::value) {
+        // 这里必须直接定义类型，不能用cosImp运算获得，避免多次求导过程中计算图中出现相同的类型
+        using TempNodeType = SinNodeImp<InputNodeTypePara, indexPara + 1>;
+        auto tempNodePtr = std::shared_ptr<TempNodeType>(new TempNodeType(std::get<0>(inputs)));
+        auto vecTempNodePtr = rowVectorizationImp(tempNodePtr);
+        auto diagTempNodePtr = matDiagonalImp(vecTempNodePtr);
+        return diagTempNodePtr;
+    }
+    
 }
 
 }

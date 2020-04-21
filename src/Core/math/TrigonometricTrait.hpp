@@ -22,22 +22,31 @@ namespace MetaAD {
 
 namespace ad_math {
 
-    template<typename InputValueTypePara>
-    struct sin_trait;
-    
-    template<>
-    struct sin_trait<double> {
-        using type = double;
-    };
-    
-    template<typename InputValueTypePara>
-    struct cos_trait;
-    
-    template<>
-    struct cos_trait<double> {
-        using type = double;
-    };
+template<typename InputValueTypePara>
+struct sin_trait;
 
+template<>
+struct sin_trait<double> {
+    using type = double;
+};
+
+template<>
+struct sin_trait<ad_MatrixXd> {
+    using type = ad_MatrixXd;
+};
+
+template<typename InputValueTypePara>
+struct cos_trait;
+
+template<>
+struct cos_trait<double> {
+    using type = double;
+};
+
+template<>
+struct cos_trait<ad_MatrixXd> {
+    using type = ad_MatrixXd;
+};
 
 
 }
