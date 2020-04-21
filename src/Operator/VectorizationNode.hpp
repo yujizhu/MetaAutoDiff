@@ -12,10 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#ifndef METAAUTODIFF_TRIGONOMETRICNODE_HPP
-#define METAAUTODIFF_TRIGONOMETRICNODE_HPP
+#ifndef METAAUTODIFF_VECTORIZATIONNODE_HPP
+#define METAAUTODIFF_VECTORIZATIONNODE_HPP
 
-#include"../Core/math/Trigonometric.hpp"
+#include"../Core/math/Vectorization.hpp"
 #include"../Core/GraphNodeBase.hpp"
 #include"../Core/NodeWrapper.hpp"
 #include<memory>
@@ -24,39 +24,39 @@ limitations under the License. */
 namespace MetaAD {
 
 template<typename InputNodeTypePara>
-struct SinNodeTrait {
+struct ColVectorizationNodeTrait {
     using InputNodeValueType = typename InputNodeTypePara::ValueType;
-    using type = typename ad_math::sin_trait<InputNodeValueType>::type;
+    using type = typename ad_math::col_vectorization_trait<InputNodeValueType>::type;
 };
 
 template<typename InputNodeTypePara>
-struct SinPolicyDefault {
+struct ColVectorizationPolicyDefault {
     using InputNodeValueType = typename InputNodeTypePara::ValueType;
-    using type = typename ad_math::sin_policy<InputNodeValueType>;
+    using type = typename ad_math::col_vectorization_policy<InputNodeValueType>;
 };
 
 template<typename InputNodeTypePara, unsigned int indexPara,
-         typename ValueTypePara = typename SinNodeTrait<InputNodeTypePara>::type, 
-         typename PolicyPara = typename SinPolicyDefault<InputNodeTypePara>::type,
+         typename ValueTypePara = typename ColVectorizationNodeTrait<InputNodeTypePara>::type, 
+         typename PolicyPara = typename ColVectorizationPolicyDefault<InputNodeTypePara>::type,
          bool legalPara = isNodeType<InputNodeTypePara>::value>
-class SinNodeImp;
+class ColVectorizationNodeImp;
 
 template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypePara, typename PolicyPara>
-class SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
-  : public GraphNodeBase<SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
+class ColVectorizationNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
+  : public GraphNodeBase<ColVectorizationNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
   public:
-    using Base = GraphNodeBase<SinNodeImp>;
+    using Base = GraphNodeBase<ColVectorizationNodeImp>;
     using InputNodeTypes = std::tuple<std::shared_ptr<InputNodeTypePara>>;
     using ValueType = ValueTypePara;
     using Policy = PolicyPara;
-    using ConcreteNodeType = SinNodeImp;
+    using ConcreteNodeType = ColVectorizationNodeImp;
     static constexpr unsigned int index() {
         return indexPara;
     }
 
-    SinNodeImp() = delete;
+    ColVectorizationNodeImp() = delete;
 
-    SinNodeImp(std::shared_ptr<InputNodeTypePara> inputNode)
+    ColVectorizationNodeImp(std::shared_ptr<InputNodeTypePara> inputNode)
       : Base(), inputs(InputNodeTypes(inputNode)) {
         output = Policy::compute(inputNode->getValue());
     }
@@ -74,7 +74,8 @@ class SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
         ValueType result = Policy::compute(std::get<0>(inputs)->compute());
         return result;
     }
-
+    
+    // 先不实现该算子的求导操作
     template<unsigned int variableIndex>
     auto derivative() const;
 
@@ -89,64 +90,62 @@ class SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
 
 template<typename InputNodeTypePara, unsigned int indexPara,
          typename ValueTypePara, typename PolicyPara, bool legalPara>
-struct traits<SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, legalPara>> {
+struct traits<ColVectorizationNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, legalPara>> {
     using InputNodeTypes = std::tuple<std::shared_ptr<InputNodeTypePara>>;
     using ValueType = ValueTypePara;
     using Policy = PolicyPara;
     static constexpr unsigned int index = indexPara;
 };
 
-
 template<typename ConcreteInputNodeTypePara, unsigned int indexPara = ConcreteInputNodeTypePara::index() + 1>
-auto sinImp(const std::shared_ptr<ConcreteInputNodeTypePara>& inputNodePtr) {
-    using NodeType = SinNodeImp<ConcreteInputNodeTypePara, indexPara>;
+auto colVectorizationImp(const std::shared_ptr<ConcreteInputNodeTypePara>& inputNodePtr) {
+    using NodeType = ColVectorizationNodeImp<ConcreteInputNodeTypePara, indexPara>;
     return std::shared_ptr<NodeType>(new NodeType(inputNodePtr));
 }
 
 template<typename ConcreteInputNodeTypePara>
-auto sin(const NodeWrapper<ConcreteInputNodeTypePara>& inputNode) {
-    auto concreteResultNodePtr = sinImp(inputNode.pNode);
+auto colVectorization(const NodeWrapper<ConcreteInputNodeTypePara>& inputNode) {
+    auto concreteResultNodePtr = colVectorizationImp(inputNode.pNode);
     using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
     return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
 
+// row vectorization
 
-
-// CosNode
 template<typename InputNodeTypePara>
-struct CosNodeTrait {
+struct RowVectorizationNodeTrait {
     using InputNodeValueType = typename InputNodeTypePara::ValueType;
-    using type = typename ad_math::cos_trait<InputNodeValueType>::type;
+    using type = typename ad_math::row_vectorization_trait<InputNodeValueType>::type;
 };
 
 template<typename InputNodeTypePara>
-struct CosPolicyDefault {
+struct RowVectorizationPolicyDefault {
     using InputNodeValueType = typename InputNodeTypePara::ValueType;
-    using type = typename ad_math::cos_policy<InputNodeValueType>;
+    using type = typename ad_math::row_vectorization_policy<InputNodeValueType>;
 };
 
 template<typename InputNodeTypePara, unsigned int indexPara,
-         typename ValueTypePara = typename CosNodeTrait<InputNodeTypePara>::type, 
-         typename PolicyPara = typename CosPolicyDefault<InputNodeTypePara>::type,
+         typename ValueTypePara = typename RowVectorizationNodeTrait<InputNodeTypePara>::type, 
+         typename PolicyPara = typename RowVectorizationPolicyDefault<InputNodeTypePara>::type,
          bool legalPara = isNodeType<InputNodeTypePara>::value>
-class CosNodeImp;
+class RowVectorizationNodeImp;
 
 template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypePara, typename PolicyPara>
-class CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
-  : public GraphNodeBase<CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
+class RowVectorizationNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
+  : public GraphNodeBase<RowVectorizationNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara,true>> {
   public:
-    using Base = GraphNodeBase<CosNodeImp>;
+    using Base = GraphNodeBase<RowVectorizationNodeImp>;
     using InputNodeTypes = std::tuple<std::shared_ptr<InputNodeTypePara>>;
     using ValueType = ValueTypePara;
     using Policy = PolicyPara;
-    using ConcreteNodeType = CosNodeImp;
+    using ConcreteNodeType = RowVectorizationNodeImp;
     static constexpr unsigned int index() {
         return indexPara;
     }
 
-    CosNodeImp() = delete;
+    RowVectorizationNodeImp() = delete;
 
-    CosNodeImp(std::shared_ptr<InputNodeTypePara> inputNode)
+    RowVectorizationNodeImp(std::shared_ptr<InputNodeTypePara> inputNode)
       : Base(), inputs(InputNodeTypes(inputNode)) {
         output = Policy::compute(inputNode->getValue());
     }
@@ -164,7 +163,7 @@ class CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
         ValueType result = Policy::compute(std::get<0>(inputs)->compute());
         return result;
     }
-
+    // 先不实现该算子的求导操作
     template<unsigned int variableIndex>
     auto derivative() const;
 
@@ -179,7 +178,7 @@ class CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>
 
 template<typename InputNodeTypePara, unsigned int indexPara,
          typename ValueTypePara, typename PolicyPara, bool legalPara>
-struct traits<CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, legalPara>> {
+struct traits<RowVectorizationNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, legalPara>> {
     using InputNodeTypes = std::tuple<std::shared_ptr<InputNodeTypePara>>;
     using ValueType = ValueTypePara;
     using Policy = PolicyPara;
@@ -187,35 +186,18 @@ struct traits<CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara
 };
 
 template<typename ConcreteInputNodeTypePara, unsigned int indexPara = ConcreteInputNodeTypePara::index() + 1>
-auto cosImp(const std::shared_ptr<ConcreteInputNodeTypePara>& inputNodePtr) {
-    using NodeType = CosNodeImp<ConcreteInputNodeTypePara, indexPara>;
+auto rowVectorizationImp(const std::shared_ptr<ConcreteInputNodeTypePara>& inputNodePtr) {
+    using NodeType = RowVectorizationNodeImp<ConcreteInputNodeTypePara, indexPara>;
     return std::shared_ptr<NodeType>(new NodeType(inputNodePtr));
 }
 
 template<typename ConcreteInputNodeTypePara>
-auto cos(const NodeWrapper<ConcreteInputNodeTypePara>& inputNode) {
-    auto concreteResultNodePtr = cosImp(inputNode.pNode);
+auto rowVectorization(const NodeWrapper<ConcreteInputNodeTypePara>& inputNode) {
+    auto concreteResultNodePtr = rowVectorizationImp(inputNode.pNode);
     using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
     return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
 
-template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypePara, typename PolicyPara>
-template<unsigned int variableIndex>
-auto SinNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>::derivative() const {
-    static_assert(variableIndex == 0, "The partial derivative variable index must be 0.");
-    using DerivativeNodeType = CosNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
-    auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
-    return derivativeNodePtr;
-}
-
-template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypePara, typename PolicyPara>
-template<unsigned int variableIndex>
-auto CosNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>::derivative() const {
-    static_assert(variableIndex == 0, "The partial derivative variable index must be 0.");
-    using DerivativeNodeType = SinNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
-    auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
-    return derivativeNodePtr;
-}
 
 }
 
