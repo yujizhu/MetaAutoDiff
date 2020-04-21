@@ -64,7 +64,7 @@ struct row_vectorization_policy<ad_MatrixXd> {
 
     static OutputValueType compute(const ad_MatrixXd& operand) {
         ad_MatrixXd result = operand.transpose();
-        result.resize(1, operand.rows()*operand.cols());
+        result.resize(operand.rows()*operand.cols(), 1);
         return result;
     }
 };
