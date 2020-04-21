@@ -25,23 +25,48 @@ namespace MetaAD {
 namespace ad_math {
 
 template<typename InputValueTypePara>
-    struct exp_policy;
+struct exp_policy;
 
-    template<>
-    struct exp_policy<double> {
-        using OutputValueType = typename exp_trait<double>::type;
-        using DerivativeValueType = typename ad_math::partial_derivative_trait<double, double>::type;
-        template<unsigned int variableIndex> 
-        static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 0>::value,
-                                       DerivativeValueType>::type
-        derivative(double operand) {
-            return std::exp(operand);
-        }
+template<>
+struct exp_policy<double> {
+    using OutputValueType = typename exp_trait<double>::type;
+    using DerivativeValueType = typename ad_math::partial_derivative_trait<double, double>::type;
+    template<unsigned int variableIndex> 
+    static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 0>::value,
+                                   DerivativeValueType>::type
+    derivative(double operand) {
+        return std::exp(operand);
+    }
 
-        static OutputValueType compute(double operand) {
-            return std::exp(operand);
-        }
-    };
+    static OutputValueType compute(double operand) {
+        return std::exp(operand);
+    }
+};
+
+template<>
+struct exp_policy<ad_MatrixXd> {
+    using OutputValueType = typename exp_trait<ad_MatrixXd>::type;
+    using DerivativeValueType = typename ad_math::partial_derivative_trait<ad_MatrixXd, ad_MatrixXd>::type;
+    /*
+    template<unsigned int variableIndex> 
+    static typename std::enable_if<internal::is_same_value<unsigned int, variableIndex, 0>::value,
+                                   DerivativeValueType>::type
+    derivative(const ad_MatrixXd& leftOperand, const ad_MatrixXd& rightOperand, const OutputValueType& output) {
+        // 矩阵加法必然满足输入矩阵，输出矩阵的维数（行、列）相同。
+        auto rowLength = output.rows();
+        auto colLength = output.cols();
+        assert((rowLength == leftOperand.rows() && rowLength == rightOperand.rows()
+             && colLength == leftOperand.cols() && colLength == rightOperand.cols()));
+        return ad_MatrixXd::Identity(rowLength*colLength, rowLength*colLength);
+    }
+    */
+        
+    static OutputValueType compute(const ad_MatrixXd& operand) {
+        ad_MatrixXd result = operand.array().exp();
+        return result;
+    }
+};
+
 
 }
 

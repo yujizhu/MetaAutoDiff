@@ -19,6 +19,8 @@ limitations under the License. */
 #include"../Core/GraphNodeBase.hpp"
 #include"../Core/NodeWrapper.hpp"
 #include"../Core/math/ValueTrait.hpp"
+#include"VectorizationNode.hpp"
+#include"MatDiagonalNode.hpp"
 #include<memory>
 #include<tuple>
 
@@ -117,6 +119,14 @@ auto ExpNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>::
         using DerivativeNodeType = ExpNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
         auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
         return derivativeNodePtr;
+    }
+    else if constexpr (ad_math::is_matrix<typename InputNodeTypePara::ValueType>::value) {
+        // 这里必须直接定义类型，不能用cosImp运算获得，避免多次求导过程中计算图中出现相同的类型
+        using TempNodeType = ExpNodeImp<InputNodeTypePara, indexPara + 1>;
+        auto tempNodePtr = std::shared_ptr<TempNodeType>(new TempNodeType(std::get<0>(inputs)));
+        auto vecTempNodePtr = rowVectorizationImp(tempNodePtr);
+        auto diagTempNodePtr = matDiagonalImp(vecTempNodePtr);
+        return diagTempNodePtr;
     }
 }
 
