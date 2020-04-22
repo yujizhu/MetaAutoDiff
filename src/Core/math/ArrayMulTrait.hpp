@@ -12,37 +12,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#ifndef METAAUTODIFF_MULTRAIT_HPP
-#define METAAUTODIFF_MULTRAIT_HPP
+#ifndef METAAUTODIFF_ARRAYMULTRAIT_HPP
+#define METAAUTODIFF_ARRAYMULTRAIT_HPP
 
 #include<utility>
 #include"MatrixWrapper.hpp"
+
 namespace MetaAD {
 
 namespace ad_math {
 
-    template<typename LeftValueTypePara, typename RightValueTypePara>
-    struct mul_trait {
-        using type = decltype(std::declval<LeftValueTypePara>() * std::declval<RightValueTypePara>());
-    };
+template<typename LeftValueTypePara, typename RightValueTypePara>
+struct array_mul_trait;
     
-    template<>
-    struct mul_trait<ad_MatrixXd, ad_MatrixXd> {
-        using type = ad_MatrixXd;
-    };
-    
-    /*
-    template<>
-    struct mul_trait<ad_MatrixXd, double> {
-        using type = ad_MatrixXd;
-    };
-
-    template<>
-    struct mul_trait<double, ad_MatrixXd> {
-        using type = ad_MatrixXd;
-    };
-    */
-    
+template<>
+struct array_mul_trait<ad_MatrixXd, ad_MatrixXd> {
+    using type = ad_MatrixXd;
+};
 
 }
 

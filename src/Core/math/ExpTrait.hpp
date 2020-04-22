@@ -22,15 +22,15 @@ namespace MetaAD {
 
 namespace ad_math {
     
-    template<typename InputValueTypePara>
-    struct exp_trait {
-        using type = decltype(std::exp(std::declval<InputValueTypePara>()));
-    };
+template<typename InputValueTypePara>
+struct exp_trait {
+    using type = decltype(std::exp(std::declval<InputValueTypePara>()));
+};
     
-    template<>
-    struct exp_trait<ad_MatrixXd> {
-        using type = ad_MatrixXd;
-    };
+template<>
+struct exp_trait<ad_MatrixXd> {
+    using type = ad_MatrixXd;
+};
 
 }
 

@@ -21,7 +21,6 @@ limitations under the License. */
 #include"../Core/math/ValueTrait.hpp"
 #include"VectorizationNode.hpp"
 #include"MatDiagonalNode.hpp"
-#include<memory>
 #include<tuple>
 
 namespace MetaAD {

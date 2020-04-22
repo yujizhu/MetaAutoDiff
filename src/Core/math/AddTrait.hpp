@@ -22,15 +22,15 @@ namespace MetaAD {
 
 namespace ad_math {
 
-    template<typename LeftValueTypePara, typename RightValueTypePara>
-    struct add_trait {
-        using type = decltype(std::declval<LeftValueTypePara>() + std::declval<RightValueTypePara>());
-    };
+template<typename LeftValueTypePara, typename RightValueTypePara>
+struct add_trait {
+    using type = decltype(std::declval<LeftValueTypePara>() + std::declval<RightValueTypePara>());
+};
     
-    template<>
-    struct add_trait<ad_MatrixXd, ad_MatrixXd> {
-        using type = ad_MatrixXd;
-    };
+template<>
+struct add_trait<ad_MatrixXd, ad_MatrixXd> {
+    using type = ad_MatrixXd;
+};
     
 
 }
