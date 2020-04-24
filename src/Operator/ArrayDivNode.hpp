@@ -74,7 +74,7 @@ class ArrayDivNodeImp<LeftInputNodeTypePara, RightInputNodeTypePara, indexPara, 
     ValueType getValue() const { return output; }   
 
     ValueType compute() const{
-        ValueType result = std::get<0>(inputs)->compute() + std::get<1>(inputs)->compute();
+        ValueType result = Policy::compute(std::get<0>(inputs)->compute(), std::get<1>(inputs)->compute());
         return result;
     }
     /*

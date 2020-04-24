@@ -15,8 +15,8 @@ limitations under the License. */
 #ifndef METAAUTODIFF_MATTRANSPOSENODE_HPP
 #define METAAUTODIFF_MATTRANSPOSENODE_HPP
 
+#include"../Core/ValueNode.hpp"
 #include"../Core/math/MatTranspose.hpp"
-#include"../Core/GraphNodeBase.hpp"
 #include"../Core/NodeWrapper.hpp"
 #include<memory>
 #include<tuple>
@@ -73,6 +73,32 @@ class MatTransposeNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPar
     ValueType compute() const {
         ValueType result = Policy::compute(std::get<0>(inputs)->compute());
         return result;
+    }
+    
+    template<unsigned int variableIndex>
+    auto derivative() const {
+        static_assert((variableIndex==0), "The partial derivative variable index must be 0.");
+        if constexpr (ad_math::is_matrix<typename InputNodeTypePara::ValueType>::value) {
+            auto row = (std::get<0>(inputs)->getValue()).rows();
+            auto col = (std::get<0>(inputs)->getValue()).cols();
+            std::cout << row << " " << col << std::endl;
+            auto temp1 = ad_MatrixXd::Identity(col, col);
+            auto temp2 = ad_MatrixXd::Identity(row, row);
+            ad_MatrixXd derivativeMatrix = ad_MatrixXd::Zero(row*col, row*col);
+            for (int i = 0; i < col; i++) {
+                for (int l = 0; l < col; l++) {
+                    for (int j = 0; j < row; j++) {
+                        for (int k = 0; k < row; k++) {
+                            derivativeMatrix(i*row + j, k*col + l) = temp1(i,l)*temp2(j,k);
+                        }
+                    }
+                }
+            }
+            using TempNodeType = ValueNode<NullTypeNode, typename InputNodeTypePara::ValueType, internal::unique_index>;
+            auto derivativeNodePtr = std::shared_ptr<TempNodeType>
+                                    (new TempNodeType(derivativeMatrix));
+            return derivativeNodePtr;
+        }
     }
 
 

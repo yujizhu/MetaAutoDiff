@@ -38,6 +38,9 @@ class ValueNode
     ValueType getValue() { return output; }
     ValueType getValue() const { return output; }
     ValueType compute() const { return output; }
+    void resetValue(const ValueType& operand) {
+        output = operand;
+    }
     
     static constexpr unsigned int index() {
         return indexPara;

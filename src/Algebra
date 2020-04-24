@@ -4,18 +4,29 @@
 #include"Operator/AddNode.hpp"
 #include"Operator/MulNode.hpp"
 #include"Operator/SubNode.hpp"
-#include"Core/ValueNode.hpp"
+#include"Operator/TrigonometricNode.hpp"
+#include"src/Operator/ExpNode.hpp"
+#include"src/Operator/UnaryExprNode.hpp"
+#include"src/Operator/LogNode.hpp"
+#include"src/Operator/ArrayDivNode.hpp"
 #include"Core/CalcPartialDerivative.hpp"
 
 namespace MetaAD {
     template<unsigned int indexPara>
-    using INT = MetaAD::ValueNode<MetaAD::NullTypeNode, int, indexPara>;
+    using DOUBLE = NodeWrapper<ValueNode<MetaAD::NullTypeNode, double, indexPara>>;
 
     template<unsigned int indexPara>
-    using DOUBLE = MetaAD::ValueNode<MetaAD::NullTypeNode, double, indexPara>;
+    using MATRIXXD = NodeWrapper<ValueNode<MetaAD::NullTypeNode, MetaAD::ad_MatrixXd, indexPara>>;
 
     template<unsigned int indexPara>
-    using MATRIXXD = MetaAD::ValueNode<MetaAD::NullTypeNode, MetaAD::ad_MatrixXd, indexPara>;
+    DOUBLE<indexPara> makeDouble(double value) {
+        return NodeWrapper<ValueNode<MetaAD::NullTypeNode, double, indexPara>>(std::shared_ptr<MetaAD::ValueNode<MetaAD::NullTypeNode, double, indexPara>>(new MetaAD::ValueNode<MetaAD::NullTypeNode, double, indexPara>(value)));
+    }
+
+    template<unsigned int indexPara>
+    MATRIXXD<indexPara> makeMatrixXd(const ad_MatrixXd& value) {
+        return NodeWrapper<ValueNode<MetaAD::NullTypeNode, ad_MatrixXd, indexPara>>(std::shared_ptr<MetaAD::ValueNode<MetaAD::NullTypeNode, ad_MatrixXd, indexPara>>(new MetaAD::ValueNode<MetaAD::NullTypeNode, ad_MatrixXd, indexPara>(value)));
+    }
 }
 
 #endif

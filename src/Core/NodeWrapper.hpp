@@ -45,6 +45,10 @@ class NodeWrapper<NodeTypePara, true> {
     auto compute() {
         return pNode->compute();
     }
+    // only ValueNode has resetValue member.
+    void resetValue(const typename NodeTypePara::ValueType& operand) {
+        pNode->resetValue(operand);
+    }
 
     std::shared_ptr<ConcreteNodeType> pNode;
 };

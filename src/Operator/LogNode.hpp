@@ -19,6 +19,7 @@ limitations under the License. */
 #include"../Core/GraphNodeBase.hpp"
 #include"../Core/NodeWrapper.hpp"
 #include"../Core/math/ValueTrait.hpp"
+#include"ArrayDivNode.hpp"
 #include"VectorizationNode.hpp"
 #include"MatDiagonalNode.hpp"
 #include<memory>
@@ -110,26 +111,30 @@ auto log(const NodeWrapper<ConcreteInputNodeTypePara>& inputNode) {
     using ConcreteResultNodeType = typename decltype(concreteResultNodePtr)::element_type;
     return NodeWrapper<ConcreteResultNodeType>(concreteResultNodePtr);
 }
-/*
+
 template<typename InputNodeTypePara, unsigned int indexPara, typename ValueTypePara, typename PolicyPara>
 template<unsigned int variableIndex>
 auto LogNodeImp<InputNodeTypePara, indexPara, ValueTypePara, PolicyPara, true>::derivative() const {
     static_assert(variableIndex == 0, "The partial derivative variable index must be 0.");
     if constexpr (ad_math::is_scalar<typename InputNodeTypePara::ValueType>::value) {
-        using DerivativeNodeType = ExpNodeImp<InputNodeTypePara, indexPara + 1>; // +1是为了不让求导节点与原结果节点的类型相同
-        auto derivativeNodePtr = std::shared_ptr<DerivativeNodeType>(new DerivativeNodeType(std::get<0>(inputs)));
-        return derivativeNodePtr;
+        using OneType = ValueNode<NullTypeNode, double, internal::unique_index>;
+        auto onePtr = std::shared_ptr<OneType>(new OneType(1));
+        //auto derivativeNodePtr = ;
+        return onePtr;
     }
     else if constexpr (ad_math::is_matrix<typename InputNodeTypePara::ValueType>::value) {
         // 这里必须直接定义类型，不能用cosImp运算获得，避免多次求导过程中计算图中出现相同的类型
-        using TempNodeType = ExpNodeImp<InputNodeTypePara, indexPara + 1>;
-        auto tempNodePtr = std::shared_ptr<TempNodeType>(new TempNodeType(std::get<0>(inputs)));
-        auto vecTempNodePtr = rowVectorizationImp(tempNodePtr);
-        auto diagTempNodePtr = matDiagonalImp(vecTempNodePtr);
-        return diagTempNodePtr;
+        unsigned int row = std::get<0>(inputs)->getValue().rows();
+        unsigned int col = std::get<0>(inputs)->getValue().cols();
+        using OneType = ValueNode<NullTypeNode, typename InputNodeTypePara::ValueType, internal::unique_index>;
+        auto onePtr = std::shared_ptr<OneType>(new OneType(InputNodeTypePara::ValueType::Ones(row, col)));
+        auto derivativeNodePtr = arrayDivImp(onePtr, std::get<0>(inputs));
+        auto vecDerivativeNodePtr = rowVectorizationImp(derivativeNodePtr);
+        auto diagDerivativeNodePtr = matDiagonalImp(vecDerivativeNodePtr);
+        return diagDerivativeNodePtr;
     }
 }
-*/
+
 
 }
 
