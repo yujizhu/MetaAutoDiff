@@ -1,3 +1,7 @@
+/*
+reference:https://zhuanlan.zhihu.com/p/36834302
+*/
+
 #include<Eigen>
 #include<src/Algebra>
 #include<fstream>
